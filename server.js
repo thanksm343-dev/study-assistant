@@ -908,11 +908,8 @@ app.post('/approve-payment', verifyUser, async (req, res) => {
 });
 
 // ===================== ADMIN ROUTES =====================
-app.get('/admin.html', verifyUser, (req, res) => {
-  if (!req.isAdmin) {
-    return res.status(403).send("🚫 Access Denied: Admin only");
-  }
-  return res.sendFile(path.join(__dirname, 'admin.html'));
+app.get('/admin.html', (req, res) => {
+    return res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('/check-admin', verifyUser, (req, res) => {
