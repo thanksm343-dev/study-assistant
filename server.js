@@ -918,6 +918,9 @@ app.get('/admin-test', verifyUser, (req, res) => {
   }
   return res.json({ success: true, message: "You are an admin!" });
 });
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
 // ===================== START =====================
 app.listen(3000, '0.0.0.0', () => {
