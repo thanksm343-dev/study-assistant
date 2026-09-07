@@ -907,10 +907,6 @@ app.post('/approve-payment', verifyUser, async (req, res) => {
   }
 });
 
-// ===================== ADMIN ROUTES =====================
-app.get('/admin.html', (req, res) => {
-    return res.sendFile(path.join(__dirname, 'admin.html'));
-});
 
 app.get('/check-admin', verifyUser, (req, res) => {
   return res.json({ isAdmin: !!req.isAdmin });
