@@ -1,0 +1,5 @@
+﻿node_modules/
+.env
+serviceAccountKey.json
+admin.html
+study-assistant-20303-firebase-adminsdk-fbsvc-0bdd627b97.json

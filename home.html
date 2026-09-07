@@ -1,0 +1,4152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مساعد الدراسة</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+<!-- ✅ MathJax لعرض المعادلات الرياضية بشكل جميل -->
+<script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    },
+    options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<style>
+:root {
+    --bg:        #0a0a0f;
+    --surface:   #111118;
+    --card:      #16161f;
+    --border:    #25253a;
+    --purple:    #7c5cfc;
+    --purple2:   #5b3fd4;
+    --cyan:      #22d3ee;
+    --green:     #10b981;
+    --text:      #e8e8f0;
+    --muted:     #6b6b8a;
+    --radius:    14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Cairo', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 900; }
+
+.logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+}
+
+.logo-text { 
+    background: linear-gradient(90deg, var(--purple), var(--cyan));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.upgrade-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--purple);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--purple);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.upgrade-btn:hover { background: var(--purple); color: white; }
+
+.pro-badge {
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+
+
+.days-pill {
+    background: rgba(0,0,0,0.25);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ✅ LAYOUT */
+.app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ✅ SIDEBAR */
+.sidebar {
+    width: 250px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.sidebar-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sidebar-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.new-chat-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--purple);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--purple);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+/* ==========================================
+   📱 تنسيقات شاشات الهواتف المحمولة (Responsive)
+   ========================================== */
+@media (max-width: 768px) {
+  body {
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+
+  .app-body {
+    flex-direction: column !important;
+    overflow: visible !important;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    border-left: none !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .header {
+    padding: 0 12px !important;
+  }
+
+  textarea, input {
+    font-size: 16px !important; /* لمنع الزوم التلقائي في آيفون وأندرويد */
+  }
+
+  .MathJax, .katex-display {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+.new-chat-btn:hover { background: var(--purple); color: white; }
+.sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+.sidebar-list::-webkit-scrollbar { width: 3px; }
+.sidebar-list::-webkit-scrollbar-thumb { background: var(--border); }
+.chat-item {
+    padding: 9px 11px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 3px;
+    border: 1px solid transparent;
+    position: relative;
+}
+.chat-item:hover { background: var(--card); }
+.chat-item.active { background: var(--card); border-color: var(--purple); }
+.chat-item-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 20px;
+}
+.chat-item-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.chat-item-delete {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px;
+    display: none;
+    transition: color 0.2s;
+}
+.chat-item:hover .chat-item-delete { display: block; }
+.chat-item-delete:hover { color: #ef4444; }
+.sidebar-empty { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 10px; }
+html, body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.app-body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.modes {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.mode-card {
+    flex: 1;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+}
+
+.mode-card:hover { border-color: var(--purple); color: var(--text); background: #1a1a28; }
+
+.mode-card.active {
+    border-color: var(--purple);
+    background: linear-gradient(135deg, #1a1230, #12182a);
+    color: white;
+    box-shadow: 0 0 20px rgba(124, 92, 252, 0.2);
+}
+
+.mode-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+.bac-box {
+    display: none;
+    padding: 10px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.bac-box select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.bac-box select:focus { border-color: var(--purple); }
+
+#chatContainer {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+#chatContainer::-webkit-scrollbar { width: 4px; }
+#chatContainer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.msg {
+    max-width: 72%;
+    padding: 13px 16px;
+    border-radius: 16px;
+    line-height: 1.7;
+    word-break: break-word;
+    font-size: 14px;
+    animation: fadeUp 0.25s ease;
+}
+
+/* ✅ إزالة white-space: pre-wrap من .msg.ai حتى تعمل MathJax */
+.msg.user {
+    background: linear-gradient(135deg, var(--purple2), var(--purple));
+    color: white;
+    align-self: flex-end;
+    border-bottom-left-radius: 4px;
+    white-space: pre-wrap;
+}
+
+.msg.ai {
+    background: var(--card);
+    color: var(--text);
+    align-self: flex-start;
+    border-bottom-right-radius: 4px;
+    border: 1px solid var(--border);
+    direction: ltr; /* ✅ اتجاه النص حسب المحتوى */
+    text-align: left;
+}
+
+/* ✅ تنسيق المعادلات داخل الفقاعة */
+.msg.ai .MathJax { color: var(--cyan) !important; }
+.msg.ai p { margin-bottom: 8px; white-space: pre-wrap; }
+.msg.ai strong { color: var(--cyan); }
+.msg.status {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important; /* خلفية بنفسجية متدرجة فخمة */
+    color: #ffffff !important; /* لون النص أبيض ليوضح تماماً */
+    align-self: center;
+    font-size: 13px;
+    font-style: normal; /* جعلناه عادياً بدلاً من المائل ليكون أرتب */
+    max-width: 100%;
+    text-align: center;
+    padding: 8px 16px !important; /* إضافة مسافة داخلية ليتسع الزر حول النص */
+    border-radius: 20px !important; /* حواف دائرية أنيقة تشبه الكبسولة */
+    border: 1px solid rgba(124, 58, 237, 0.4) !important;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3) !important;
+    margin: 10px auto !important;
+}
+
+.msg.user img {
+    max-width: 200px;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--purple);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+    margin: 0 2px;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+}
+
+.input-area {
+    padding: 14px 24px 18px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+#previewContainer {
+    display: none;
+    position: relative;
+    width: fit-content;
+    margin-bottom: 10px;
+}
+
+#previewImg { max-height: 80px; border-radius: 10px; border: 1px solid var(--border); }
+
+.remove-preview {
+    position: absolute;
+    top: -6px; left: -6px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-box {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    transition: border-color 0.2s;
+}
+.input-box:focus-within { border-color: var(--purple); }
+
+.attach-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+.attach-btn:hover { color: var(--purple); }
+
+#imageInput { display: none; }
+
+textarea#userInputField {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    max-height: 150px;
+    min-height: 24px;
+    line-height: 1.6;
+    font-family: 'Cairo', sans-serif;
+    overflow-y: auto;
+}
+textarea#userInputField::placeholder { color: var(--muted); }
+
+.send-btn {
+    background: linear-gradient(135deg, var(--purple2), var(--purple));
+    border: none;
+    color: white;
+    border-radius: 10px;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+.send-btn:hover { opacity: 0.85; }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.input-hint { text-align: center; font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+#payModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+}
+#payModal.show { display: flex; }
+
+.modal-box {
+    background: var(--card);
+    width: 360px;
+    padding: 28px 24px;
+    border-radius: 18px;
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+
+.close-x {
+    position: absolute;
+    top: 12px; left: 12px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+}
+
+.plan-btn {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    padding: 13px 16px;
+    margin-top: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+}
+.plan-btn:hover, .plan-btn.selected { background: #1a1230; border-color: var(--purple); color: white; }
+
+.plan-badge {
+    font-size: 11px;
+    background: var(--purple);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-right: 8px;
+}
+
+#method-selection-area { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.method-label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.method-btns { display: flex; gap: 8px; }
+
+.method-btn {
+    flex: 1; padding: 11px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: white;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.method-btn.flouci:hover { background: var(--purple); border-color: var(--purple); }
+.method-btn.d17:hover { background: #ec4899; border-color: #ec4899; }
+
+.pay-number { font-size: 26px; font-weight: 900; color: var(--green); margin: 14px 0; letter-spacing: 1px; }
+
+.confirm-btn {
+    width: 100%; padding: 13px;
+    background: var(--green);
+    border: none; color: white;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: opacity 0.2s; margin-top: 6px;
+}
+.confirm-btn:hover { opacity: 0.85; }
+
+/* ===== SUBSCRIPTION CARDS ===== */
+.sub-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.sub-card:hover { border-color: var(--purple); }
+.sub-card.selected { border-color: var(--purple); background: #1a1230; }
+.sub-popular { border-color: var(--purple) !important; background: #1a1230 !important; }
+
+.sub-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.sub-name { font-size: 15px; font-weight: 700; color: white; }
+.sub-ar { font-size: 11px; color: var(--muted); margin-top: 2px; direction: rtl; }
+
+.badge-pop {
+    font-size: 10px; font-weight: 700;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white; padding: 2px 8px; border-radius: 20px;
+    margin-right: 6px; vertical-align: middle;
+}
+
+.sub-radio {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    transition: all 0.2s;
+}
+.sub-radio.checked {
+    border-color: var(--purple);
+    background: var(--purple);
+    box-shadow: inset 0 0 0 4px var(--card);
+}
+
+.sub-price { font-size: 32px; font-weight: 900; color: white; margin-bottom: 4px; }
+.sub-currency { font-size: 16px; font-weight: 700; color: var(--cyan); }
+.sub-period { font-size: 13px; color: var(--muted); font-weight: 400; }
+
+.sub-save {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    background: rgba(16,185,129,0.15);
+    color: var(--green);
+    padding: 3px 10px; border-radius: 20px;
+    margin-bottom: 10px;
+}
+
+.sub-features { list-style: none; padding: 0; }
+.sub-features li { font-size: 12px; color: rgba(255,255,255,0.6); padding: 3px 0; }
+
+
+/* ===== SUBJECT DROPDOWN ===== */
+.subject-bar {
+    display: none;
+    padding: 8px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.subject-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    transition: all 0.2s;
+    user-select: none;
+}
+.subject-trigger:hover { border-color: var(--purple); }
+.subject-trigger .arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    color: var(--muted);
+}
+.subject-trigger.open .arrow { transform: rotate(180deg); }
+.subject-trigger .subject-icon { font-size: 16px; }
+.subject-trigger .subject-name { color: var(--cyan); }
+
+/* Dropdown Panel */
+.subject-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    min-width: 320px;
+}
+.subject-dropdown.open { display: block; animation: dropIn 0.15s ease; }
+
+@keyframes dropIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+/* Chips grid */
+.chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+ .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.chip:hover { border-color: var(--purple); background: #1a1a28; }
+.chip.active {
+    border-color: var(--purple);
+    background: linear-gradient(135deg, #1a1230, #12182a);
+    color: var(--cyan);
+    box-shadow: 0 0 12px rgba(124,92,252,0.2);
+}
+
+/* BAC: Section chips */
+.section-chips { margin-bottom: 10px; }
+.section-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+
+/* ===== PLAN CARDS ===== */
+.sub-plan-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sub-plan-card:hover { border-color: var(--purple); background: #1a1a28; }
+.sub-plan-card.selected { border-color: var(--purple); background: #1a1230; }
+.sub-plan-popular { border-color: var(--purple) !important; background: #1a1230 !important; }
+
+.plan-radio {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border);
+    transition: all 0.2s; flex-shrink: 0;
+}
+.plan-radio.checked {
+    border-color: var(--purple);
+    background: var(--purple);
+    box-shadow: inset 0 0 0 4px var(--card);
+}
+/* أضف هذه الأسطر في آخر ملف الـ CSS لديك */
+#summarySubjects, #bacSubjects {
+    display: none;
+}
+
+.subject-dropdown.open #summarySubjects, 
+.subject-dropdown.open #bacSubjects {
+    display: block !important;
+}
+
+.chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+/* إخفاء محتويات القائمة افتراضياً */
+#summarySubjects, #bacSubjects {
+    display: none;
+}
+
+/* إظهار محتويات القائمة فقط عندما تفتح الحاوية بكلاس open */
+.subject-dropdown.open #summarySubjects, 
+.subject-dropdown.open #bacSubjects {
+    display: block !important;
+}
+/* إخفاء القائمة المنسدلة افتراضياً */
+.subject-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 9999;
+}
+
+/* إظهار القائمة عندما تأخذ كلاس open */
+.subject-dropdown.open {
+    display: block !important;
+}
+
+/* التأكد من أن الحاوية الأب لها وضعية relative لتتمركز القائمة تحت الزر بشكل صحيح */
+.subject-bar {
+    position: relative;
+}
+/* تأثير النقاط المتحركة للتحليل */
+.typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #555; /* لون النقاط */
+    animation: typing-dot 1.4s infinite ease-in-out both;
+    margin: 0 2px;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing-dot {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* تنسيق رسالة حالة التحليل */
+.msg.analysis {
+    background-color: #f8f9fa;
+    color: #555;
+    font-size: 14px;
+    text-align: center;
+    padding: 12px;
+    border-radius: 15px;
+    margin: 10px auto;
+    border: 1px solid #eee;
+    width: fit-content;
+}
+/* --- تصميم علامة التوثيق الخضراء الاحترافية --- */
+.verified-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 5px;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+    vertical-align: middle;
+}
+/* ================= الخانة الجانبية الفخمة ================= */
+.sidebar {
+  background: rgba(15, 16, 24, 0.85) !important; /* خلفية داكنة مع شفافية خفيفة */
+  backdrop-filter: blur(16px); /* تأثير الزجاج الضبابي الفخم */
+  -webkit-backdrop-filter: blur(16px);
+  border-left: 1px solid rgba(138, 92, 246, 0.2) !important; /* حد جانبي بإضاءة بنفسجية خافتة */
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5); /* ظل عميق لإبراز الفخامة */
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* عنوان القائمة الجانبية */
+.sidebar-header, .sidebar h3 {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+/* زر إغلاق القائمة (✕) */
+.sidebar-close-btn, .close-sidebar {
+  background: rgba(138, 92, 246, 0.1);
+  border: 1px solid rgba(138, 92, 246, 0.3);
+  color: #a78bfa;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+.sidebar-close-btn:hover {
+  background: #7c3aed;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* عناصر سجل المحادثات داخل القائمة */
+.chat-history-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.chat-history-item:hover {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(138, 92, 246, 0.4);
+  color: #fff;
+  transform: translateX(-4px); /* حركة خفيفة عند المرور تناسب RTL */
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.15);
+}
+
+/* زر تسجيل الخروج الفخم في الأسفل */
+.sidebar-footer-btn, .logout-btn {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.05)) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  font-weight: 700 !important;
+  transition: 0.3s ease !important;
+}
+
+.sidebar-footer-btn:hover, .logout-btn:hover {
+  background: #dc2626 !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+}
+/* ================= القائمة الجانبية الفخمة Ultra-Luxury Sidebar ================= */
+.sidebar {
+  background: rgba(13, 14, 20, 0.75) !important; /* خلفية داكنة شديدة النقاء والعمق */
+  backdrop-filter: blur(24px) saturate(180%); /* تأثير زجاجي مع تشبع ضوئي فاخر */
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(139, 92, 246, 0.18) !important; /* حد جانبي نحيل بإضاءة بنفسجية خافتة */
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.7); /* ظل محيطي يعطي إيحاء بأن القائمة تطفو فوق الشاشة */
+}
+
+/* ترويسة القائمة (سجل المحادثات وزر الإغلاق) */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 12px;
+}
+
+.sidebar-header h3, .sidebar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f3f4f6;
+  letter-spacing: 0.5px;
+}
+
+/* زر إغلاق القائمة (✕) بتصميم عصري */
+.sidebar-close-btn, .close-sidebar {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-close-btn:hover {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+}
+
+/* عناصر سجل المحادثات (كل محادثة تبدو كبطاقة مصغرة فاخرة) */
+.chat-history-item {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 16px 10px 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 13.5kpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* تأثير إضاءة جانبية ناعمة عند المرور على المحادثة */
+.chat-history-item::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: #7c3aed;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chat-history-item:hover {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(138, 92, 246, 0.3);
+  color: #ffffff;
+  transform: translateX(-4px); /* انزلاق خفيف وجميل لجهة اليمين كون الموقع RTL */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.chat-history-item:hover::before {
+  opacity: 1;
+}
+
+/* جزء البريد الإلكتروني في الأسفل */
+.sidebar-user-email {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* زر تسجيل الخروج الفخم في الأسفل */
+.sidebar-footer-btn, .logout-btn {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(220, 38, 38, 0.03)) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  color: #f87171 !important;
+  border-radius: 12px !important;
+  padding: 13px !important;
+  font-weight: 700 !important;
+  margin: 16px !important;
+  width: calc(100% - 32px) !important;
+  transition: all 0.3s ease !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sidebar-footer-btn:hover, .logout-btn:hover {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #fff !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+/* شريط تمرير (Scrollbar) مخفي وأنيق جداً */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(138, 92, 246, 0.2);
+  border-radius: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+ 
+
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- KaTeX Libraries -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+<!-- MathJax Configuration & Library -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    options: {
+      ignoreHtmlClass: 'tex2jax_ignore',
+      processHtmlClass: 'tex2jax_process'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    
+    .upgrade-btn {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2) !important;
+    }
+
+    .upgrade-btn:hover {
+        transform: translateY(-4px) scale(1.03) !important;
+        box-shadow: 0 12px 30px rgba(0, 102, 255, 0.5), 0 0 20px rgba(0, 198, 255, 0.4) !important;
+        filter: brightness(1.05);
+    }
+
+    .upgrade-btn:active {
+        transform: translateY(-1px) scale(1.01) !important;
+    }
+    /* حاوية الإشعارات العائمة */
+    #toast-container {
+        position: fixed !important;
+        bottom: 25px !important;
+        right: 25px !important;
+        z-index: 9999 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    /* شكل الإشعار نفسه */
+    .custom-toast {
+        background: rgba(15, 23, 42, 0.9) !important;
+        color: #ffffff !important;
+        padding: 12px 20px !important;
+        border-radius: 10px !important;
+        font-family: inherit !important;
+        font-size: 14px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+        border-right: 4px solid #0066ff !important;
+        backdrop-filter: blur(8px) !important;
+        opacity: 0 !important;
+        transform: translateY(20px) !important;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    .custom-toast.show {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+    /* زر فتح القائمة */
+.sidebar-toggle-btn {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar-toggle-btn:hover {
+    background: #4338ca;
+}
+
+/* القائمة الجانبية */
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 280px;
+    height: 100%;
+    background: #1e1e2f;
+    color: #ffffff76;
+    z-index: 1000;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.3);
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* حالة ظهور القائمة */
+.app-sidebar.open {
+    right: 0;
+}
+
+/* وتعديل حالة الظهور هنا: */
+.app-sidebar.open {
+    right: 0; /* تغيير left إلى right */
+}
+
+
+/* رأس القائمة */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px;
+}
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* قائمة الشاتات السابقة */
+.chat-history-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+.no-history {
+    color: #888;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+/* أسفل القائمة (البروفايل والخروج) */
+.sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.user-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #cbd5e1;
+    padding: 8px;
+}
+.logout-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+.logout-btn:hover {
+    background: #dc2626;
+}
+
+/* خلفية معتمة عند فتح القائمة */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+  .chat-history-list {
+    padding: 10px;
+    margin-top: 10px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    color: #ffffff;
+    cursor: pointer;
+    border-radius: 8px;
+    background-color: transparent;
+    transition: all 0.3s ease-in-out;
+}
+
+.chat-item:hover {
+    background-color: #2a2a40;
+}
+
+.chat-icon {
+    margin-left: 12px;
+    font-size: 1.2rem;
+    transition: transform 0.4s ease;
+}
+
+.chat-item:hover .chat-icon {
+    transform: rotate(15deg) scale(1.2);
+}
+#chatContainer {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    
+    position: relative;
+    background-color: #0b0f19 !important;
+}
+
+/* تأثير الرموز المتوهجة بشكل ساطع وقوي جداً */
+#chatContainer::before {
+    content: "∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 23px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.35); /* رفعنا وضوح الأساس */
+    line-height: 1.9;
+    word-spacing: 20px;
+    letter-spacing: 7px;
+    padding: 20px;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+    text-align: justify;
+    user-select: none;
+    overflow: hidden;
+    
+    /* حركة إضاءة وتوهج قوية جداً */
+    animation: superGlow 3s ease-in-out infinite alternate;
+}
+
+/* إضاءة قوية وساطعة تتوهج بوضوح */
+@keyframes superGlow {
+    0% {
+        opacity: 0.4;
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        opacity: 1;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(138, 43, 226, 0.7), 0 0 45px rgba(138, 43, 226, 0.5);
+    }
+}
+
+#chatContainer > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* حاوية الصورة مع تأثير السكانير */
+.scanning-container {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    border-radius: 8px;
+}
+
+/* خط السكانير الضوئي المتحرك */
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #00ffcc, transparent);
+    box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    animation: scanAnimation 2s infinite ease-in-out;
+    z-index: 10;
+}
+
+@keyframes scanAnimation {
+    0% { top: 0%; opacity: 0.8; }
+    50% { top: 100%; opacity: 1; }
+    100% { top: 0%; opacity: 0.8; }
+}
+
+/* --- تصميم زر PRO الفخم والمتحرك --- */
+.upgrade-btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 50px !important;
+    padding: 6px 16px !important;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    animation: pulseGlow 3s infinite ease-in-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.upgrade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2), 0 0 10px rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 215, 0, 0.6) !important;
+}
+
+/* تنسيق النص داخل الزر */
+.pro-badge {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+}
+
+.pro-badge span:not(.days-pill) {
+    background: linear-gradient(90deg, #ffd700, #ffaa00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+/* شارة الأيام */
+.days-pill {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ccc !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+/* أنيميشن النبض */
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+    50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 5px rgba(255, 255, 255, 0.1); }
+    100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+}
+/* --- تصميم شارة عداد الأيام الفخم للمستخدم البرو --- */
+.pro-days-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9));
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    padding: 6px 14px;
+    border-radius: 50px;
+    color: #ffd700;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.15);
+    animation: proPulse 3s infinite ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* أنيميشن تقلب / نبض هادئ للعداد */
+@keyframes proPulse {
+    0% { transform: scale(1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.15); }
+    50% { transform: scale(1.02); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.3); }
+    100% { transform: scale(1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.15); }
+}
+
+/* أيقونة الساعة أو الرمز التعبيري داخل العداد */
+.pro-days-counter .counter-icon {
+    font-size: 15px;
+    animation: rotateHourglass 4s infinite linear;
+}
+
+@keyframes rotateHourglass {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(10deg); }
+    75% { transform: rotate(-10deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* --- تنسيق متجاوب (Responsive) للهواتف --- */
+@media screen and (max-width: 768px) {
+    /* تصغير المسافات بين عناصر الهيدر العلوي */
+    header, .header-container, .top-bar {
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+        padding: 4px 8px !important;
+    }
+
+    /* ضبط حجم شارة الأيام والعداد على الجوال لتكون مدمجة وأنيقة */
+    .pro-days-counter {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        gap: 4px !important;
+        white-space: nowrap !important;
+    }
+
+    /* ضبط حجم أيقونة التوثيق والبريق على الشاشات الصغيرة */
+    .verified-check {
+        width: 13px !important;
+        height: 13px !important;
+        font-size: 8px !important;
+        margin-left: 2px !important;
+    }
+
+    /* تقليل حجم شعار برو ليتناسب مع المساحة */
+    #proBadge {
+        font-size: 12px !important;
+        padding: 4px 8px !important;
+    }
+}
+/* --- تأثير اللمعان والإضاءة المتحركة لاسم المنصة --- */
+.logo-text {
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 18px !important;
+    color: #00f2fe !important;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.8), 0 0 20px rgba(0, 242, 254, 0.4), 0 0 30px rgba(155, 81, 224, 0.3);
+    animation: neonGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* --- أنيميشن النبض والتوهج المستمر --- */
+@keyframes neonGlow {
+    0% {
+        text-shadow: 0 0 8px rgba(0, 242, 254, 0.6), 0 0 15px rgba(0, 242, 254, 0.3);
+    }
+    100% {
+        text-shadow: 0 0 18px rgba(0, 242, 254, 1), 0 0 30px rgba(155, 81, 224, 0.8), 0 0 40px rgba(0, 242, 254, 0.6);
+    }
+}
+/* --- تنسيق تاج الملك الذهبي (مع حركة الطفو والميلان) --- */
+.royal-crown {
+    font-size: 11px; /* حجم التاج */
+    
+    /* إضاءة ذهبية متوهجة قوية */
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1)) 
+            drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    
+    margin-bottom: -5px; /* لتقليل المسافة بين التاج والنص */
+    display: block;
+    position: relative;
+    z-index: 2;
+    
+    /* تطبيق حركة الطفو المستمرة (المدة 3 ثواني، حركة ناعمة، تكرار لا نهائي) */
+    animation: crownFloatAndTilt 3s ease-in-out infinite;
+    transform-origin: center; /* نقطة ارتكاز الدوران هي المركز */
+}
+
+/* --- أنيميشن حركة الطفو (لأعلى وأسفل مع الحفاظ على الميل) --- */
+@keyframes crownFloatAndTilt {
+    0%, 100% {
+        /* نقطة البداية والنهاية: ميلان ثابت 15 درجة، وموضع أصلي (0) */
+        transform: rotate(15deg) translateY(0);
+    }
+    50% {
+        /* منتصف الحركة: ميلان ثابت 15 درجة، وارتفاع لأعلى بمقدار 3 بكسل */
+        transform: rotate(15deg) translateY(-3px);
+    }
+}
+/* --- الحاوية الملكية لضبط مكان التاج وفوقه الاسم --- */
+.brand-wrapper-royal {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* --- تنسيق التاج الملكي الذهبي (مائل ومتحرك) --- */
+.royal-crown {
+    font-size: 13px; /* حجم التاج واضح ومناسب */
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1)); /* إضاءة ذهبية قوية */
+    margin-bottom: -4px; /* ليلتصق فوق الاسم تماماً */
+    display: block;
+    position: relative;
+    z-index: 2;
+    animation: crownFloatAndTilt 3s ease-in-out infinite;
+}
+
+/* --- حركة الطفو والميلان للتاج --- */
+@keyframes crownFloatAndTilt {
+    0%, 100% {
+        transform: rotate(15deg) translateY(0);
+    }
+    50% {
+        transform: rotate(15deg) translateY(-3px);
+    }
+}
+
+/* --- إضاءة اسم المنصة --- */
+.logo-text {
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 18px !important;
+    color: #00f2fe !important;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.8), 0 0 20px rgba(0, 242, 254, 0.4);
+}
+/* --- تنسيق شريط الهيدر لضمان محاذاة كافة العناصر على نفس المستوى --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center !important; /* ضمان محاذاة كل محتويات الهيدر عمودياً في المنتصف تماماً */
+    padding: 8px 15px;
+    background-color: #14141e;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- محاذاة جهة اليمين (الزر والعداد والترقية) --- */
+.header-right {
+    display: flex;
+    align-items: center !important; /* لضمان بقاء العداد وزر الترقية وزر القائمة على خط أفقي واحد */
+    gap: 8px;
+}
+
+/* --- محاذاة حاوية اسم المنصة والتاج --- */
+.logo {
+    display: flex;
+    align-items: center !important;
+}
+
+.brand-wrapper-royal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+/* --- ضبط محاذاة عداد الـ PRO ليكون على نفس مستوى اسم المنصة والأزرار --- */
+.pro-badge {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-top: 0px; /* إزالة أي إزاحة علوية */
+}
+
+/* --- التأكد من محاذاة عناصر الهيدر بالكامل في المنتصف عمودياً --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center !important;
+    padding: 10px 15px;
+    background-color: #14141e;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header-right {
+    display: flex;
+    align-items: center !important;
+    gap: 8px;
+}
+/* --- محاذاة الهيدر والعناصر بالكامل في المنتصف بدقة تامة --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center !important;
+    padding: 10px 15px;
+    background-color: #14141e;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- ضبط حاوية الاسم والتاج لتعمل ككتلة واحدة متوازنة --- */
+.logo {
+    display: flex;
+    align-items: center !important;
+    justify-content: center;
+}
+
+.brand-wrapper-royal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    /* ضبط الهوامش لضمان توسط الاسم والتاج تماماً مع بقية عناصر الهيدر */
+    margin: 0 auto;
+}
+
+/* --- تثبيت التاج فوق الاسم بدون التأثير على مستوى السطر --- */
+.royal-crown {
+    font-size: 11px;
+    position: absolute;
+    top: -14px; /* رفع التاج للأعلى ليجلس فوق الكلمة دون دفعها للأسفل */
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+    animation: crownFloatAndTilt 3s ease-in-out infinite;
+}
+
+/* --- تثبيت اسم المنصة على نفس خط النص --- */
+.logo-text {
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 18px !important;
+    color: #00f2fe !important;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+    line-height: 1.2;
+}
+/* --- تنسيق التاج الملكي الذهبي (تم تقريبه أكثر لاسم المنصة) --- */
+.royal-crown {
+    font-size: 11px;
+    position: absolute;
+    /* القيمة الجديدة السابقة كانت -14px، سنقللها لتصبح -12px ليقترب التاج أكثر */
+    top: -12px; 
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+    /* الحفاظ على حركة الطفو والميلان */
+    animation: crownFloatAndTilt 3s ease-in-out infinite;
+    /* التأكد من أنه فوق الاسم دائماً */
+    z-index: 2;
+}
+/* --- تنسيق التاج الملكي الذهبي (تم تقريبه جداً لحرف a) --- */
+.royal-crown {
+    font-size: 11px; /* حجم التاج */
+    position: absolute; /* تموضع مطلق بالنسبة للحاوية الملكية */
+    
+    /* 1. الضبط الرأسي (لإنزال التاج ليقترب من النص): 
+       سنزيد القيمة السالبة قليلاً للاقتراب من الحرف. */
+    top: -13px; 
+
+    /* 2. الضبط الأفقي (لتوسيط التاج فوق حرف 'a' تماماً): 
+       سنقوم بإزاحة التاج قليلاً لليمين (بالنسبة لمركز الحاوية). 
+       قد تحتاج لتجربة قيم مختلفة قليلاً حسب نوع الخط لديك. */
+    left: 48%; 
+    
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1));
+    animation: crownFloatAndTilt 3s ease-in-out infinite;
+    z-index: 2; /* التأكد من ظهوره فوق الاسم */
+}
+/* ================= زر محادثة جديدة داخل القائمة ================= */
+.sidebar-new-chat-btn {
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0 16px 16px 16px;
+  width: calc(100% - 32px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.sidebar-new-chat-btn:hover {
+  background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  border-color: #a78bfa;
+}
+
+/* ================= شارة PRO وحالة الحساب في الأسفل ================= */
+.sidebar-user-box {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.sidebar-user-email {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.sidebar-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+.copy-btn {
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background-color: #f0f0f0;
+}
+/* حاوية رسالة البوت */
+.bot-message-container {
+    margin: 10px 0;
+    max-width: 80%;
+    align-self: flex-start;
+}
+
+/* نص الرسالة */
+.bot-text {
+    background-color: #2a2b32;
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* شريط الأزرار تحت الرسالة */
+.message-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    align-items: center;
+}
+
+/* تصميم زر الأيقونة الشفاف */
+.icon-action-btn {
+    background: transparent;
+    border: none;
+    color: #9ca3af; /* لون خافت مطابق للصورة */
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, transform 0.1s;
+}
+
+.icon-action-btn:hover {
+    color: #ffffff; /* يصبح أبيض عند المرور عليه */
+}
+
+.icon-action-btn:active {
+    transform: scale(0.90);
+}
+/* حاوية أزرار تحت رسالة البوت */
+.message-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    padding-left: 4px;
+}
+
+/* تصميم أيقونة النسخ الشفافة */
+.copy-icon-btn {
+    background: none;
+    border: none;
+    color: #8e8ea0; /* لون خافت مشابه لشكل تيليجرام/تشات جي بي تي */
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.copy-icon-btn:hover {
+    color: #ffffff;
+}
+.bot-message-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-top: 8px;
+}
+.chat-icon-action-btn {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+.chat-icon-action-btn:hover {
+    color: #ffffff;
+}
+.icon-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #e5e7eb !important; /* لون ظاهر وواضح للعين */
+    transition: color 0.2s;
+}
+
+.icon-action-btn:hover {
+    color: #ffffff !important;
+}
+
+.message-actions {
+    display: flex !important;
+    gap: 12px !important;
+    margin-top: 8px !important;
+    align-items: center !important;
+}
+/* حاوية الرسائل العامة */
+.msg {
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 12px;
+    max-width: 80%;
+    line-height: 1.6;
+    word-wrap: break-word;
+    font-size: 15px;
+}
+
+/* رسالة المستخدم */
+.msg.user {
+    background-color: #2563eb;
+    color: #ffffff;
+    margin-right: auto;
+    margin-left: 20px;
+    border-bottom-left-radius: 2px;
+}
+
+/* رسالة البوت / الذكاء الاصطناعي */
+.msg.ai, .msg.bot {
+    background-color: #1e293b;
+    color: #f8fafc;
+    margin-left: auto;
+    margin-right: 20px;
+    border-bottom-right-radius: 2px;
+    border: 1px solid #334155;
+}
+
+/* حالة الخطأ أو الحالات الخاصة */
+.msg.status {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    border: 1px solid #991b1b;
+    margin: 10px auto;
+}
+
+/* حاوية تحليل الصورة والسكانير */
+.scanning-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.scanning-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* خط المسح الضوئي المتحرك */
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #4ade80;
+    box-shadow: 0 0 10px #4ade80, 0 0 20px #4ade80;
+    animation: scanAnimation 2s infinite ease-in-out;
+}
+
+@keyframes scanAnimation {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+
+/* رسالة جاري التحليل مع النقاط المتحركة */
+.msg.analysis {
+    background-color: #1e293b;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-style: italic;
+    border: 1px dashed #475569;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #94a3b8;
+    border-radius: 50%;
+    animation: bounceDot 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounceDot {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+/* حاوية مؤشر الكتابة الاحترافي داخل رسالة البوت */
+.typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background-color: #38bdf8; /* لون أزرق سماوي جذاب أو لون متناسق مع منصتك */
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+    40% { transform: scale(1.0); opacity: 1; }
+}
+/* --- تصميم زر الإشعارات (الجرس) --- */
+.notification-bell-btn {
+    position: relative !important;
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    /* إضافة تأثير ظل خفيف للعمق */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.notification-bell-btn:hover {
+    border-color: var(--purple) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    /* عند التحويم، اجعل الجرس يهتز هزة خفيفة جداً للفت الانتباه */
+    animation: bell-slight-jiggle 0.8s ease infinite;
+}
+
+/* --- تصميم النقطة الحمراء --- */
+.notification-bell-btn .notification-dot {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    width: 9px !important;
+    height: 9px !important;
+    background-color: #ef4444 !important; /* اللون الأحمر */
+    border-radius: 50% !important;
+    border: 2px solid var(--surface) !important; /* لتعمل هالة حول النقطة */
+    display: none; /* مخفية افتراضياً */
+    z-index: 10;
+    /* تأثير النبض المستمر (Pulse) */
+    animation: pulse-red-dot 1.5s infinite;
+}
+
+/* --- تأثير ظهور النقطة (عند وصول إشعار) --- */
+.notification-bell-btn .notification-dot.active {
+    display: block !important;
+    /* عند التنشيط، نفذ هزة واحدة قوية وسريعة (مثل التطبيقات) */
+    animation: bell-jiggle 0.5s ease-in-out, pulse-red-dot 1.5s infinite 0.5s;
+}
+
+
+/* --- Keyframes (تعريف الحركات) --- */
+
+/* 1. حركة اهتزاز خفيف عند التحويم (Hover) */
+@keyframes bell-slight-jiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+/* 2. حركة النقطة النابضة */
+@keyframes pulse-red-dot {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); /* هالة حمراء تتوسع وتختفي */
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* 3. حركة الهزة القوية والسريعة (Jiggle) عند وصول الإشعار */
+@keyframes bell-jiggle {
+    0% { transform: translateX(0) rotate(0deg); }
+    15% { transform: translateX(-3px) rotate(-8deg); }
+    30% { transform: translateX(2px) rotate(7deg); }
+    45% { transform: translateX(-2px) rotate(-6deg); }
+    60% { transform: translateX(2px) rotate(5deg); }
+    75% { transform: translateX(-1px) rotate(-3deg); }
+    90% { transform: translateX(1px) rotate(2deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+}
+</style>
+</head>
+
+<body>
+    <!-- القائمة الجانبية المخفية افتراضياً -->
+    <div id="appSidebar" class="app-sidebar">
+        <div class="sidebar-header">
+            <h3>سجل المحادثات</h3>
+            <button id="closeSidebarBtn" class="close-btn">&times;</button>
+        </div>
+
+        <!-- زر محادثة جديدة -->
+        <button class="sidebar-new-chat-btn" onclick="startNewChat()">
+            <span>+</span> محادثة جديدة
+        </button>
+
+        <!-- خانة سجل الشاتات القديمة -->
+        <div id="sidebarList" class="chat-history-list"></div>
+
+        <!-- أسفل القائمة: البروفايل (الأيقونة + الإيميل + الشارة) وزر تسجيل الخروج -->
+        <div class="sidebar-footer">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 4px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-circle" style="font-size: 18px; color: var(--muted);"></i>
+                    <span id="sidebarUserEmail" style="font-size: 13px; color: var(--muted); direction: ltr;">حسابي</span>
+                </div>
+                <div class="sidebar-pro-badge" id="sidebarProBadge" style="display: none;">👑 PRO</div>
+            </div>
+
+            <button id="sidebarLogoutBtn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+</button>
+<div class="header">
+    
+    <!-- زر القائمة وبجانبه زر الإشعارات وقائمة الإشعارات المنسدلة -->
+    <div style="display: flex; align-items: center; gap: 8px; position: relative;">
+        <!-- زر تبديل القائمة -->
+        <button id="sidebarToggleBtn" class="sidebar-toggle-btn">☰</button>
+        
+        <!-- زر الإشعارات الجديد مع النقطة الحمراء -->
+        <button class="notification-bell-btn" id="notificationBellBtn" title="الإشعارات">
+            🔔
+            <span class="notification-dot" id="menuNotificationDot"></span>
+        </button>
+
+        <!-- صندوق الإشعارات المنسدل (يظهر عند الضغط على الجرس) -->
+        <div id="notificationsDropdown" style="display: none; position: absolute; top: 50px; right: 0; width: 300px; background: var(--card, #1e1e2d); border: 1px solid var(--border, #2a2a3c); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 1000; padding: 12px; direction: rtl;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--border, #2a2a3c); padding-bottom: 6px;">
+                <span style="font-weight: bold; font-size: 14px; color: var(--text, #fff);">الإشعارات 🔔</span>
+                <span id="closeNotifications" style="cursor: pointer; font-size: 14px; color: var(--muted, #888);">✕</span>
+            </div>
+            <div id="notificationsList" style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                <!-- هنا ستظهر الرسائل تلقائياً -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- اللوجو والتاج -->
+    <div class="logo">
+        <div class="brand-wrapper-royal">
+            <span class="royal-crown">👑</span>
+            <span class="logo-text">Study Assistant</span>
+        </div>
+    </div>
+
+    <!-- قسم اليمين (الترقية وحالة الـ PRO) -->
+    <div class="header-right">
+        <button class="upgrade-btn" id="upgradeButton" onclick="openPayModal()">⚡ ترقية للـ PRO</button>
+        <div class="pro-badge" id="proBadge" style="display: none !important;">
+            <span>✨ PRO</span>
+            <span class="days-pill" id="daysLeftBadge"></span>
+        </div>
+    </div>
+
+</div>
+<!-- ✅ APP BODY: sidebar + main -->
+<div class="app-body">
+
+
+    <!-- ✅ MAIN CONTENT -->
+    <div class="main-content">
+
+        <div class="modes">
+            <div class="mode-card" id="card-summary" onclick="setMode('summary')">
+                <span class="mode-icon">📄</span>تلخيص
+            </div>
+            <div class="mode-card" id="card-exam" onclick="setMode('exam')">
+                <span class="mode-icon">📝</span>امتحان
+            </div>
+            <div class="mode-card" id="card-bac_mode" onclick="setMode('bac_mode')">
+                <span class="mode-icon">🎓</span>باكالوريا
+            </div>
+        </div>
+
+        <div class="bac-box" id="bacBox" style="display:none;">
+            <select id="streamSelect">
+                <option value="">🎓 اختر الشعبة</option>
+                <option value="math">رياضيات</option>
+                <option value="technique">تقنية</option>
+                <option value="sciences">علوم</option>
+                <option value="economie">اقتصاد</option>
+                <option value="lettres">آداب</option>
+                <option value="info">معلوماتية</option>
+            </select>
+            <select id="subjectSelect" style="display:none;">
+                <option value="">📚 اختر المادة</option>
+            </select>
+        </div>
+
+        <!-- ✅ زر امتحانات الباكالوريا السابقة (يظهر فقط في وضع باكالوريا) -->
+        <div class="past-exams-box" id="pastExamsBox" style="display:none;">
+            <button class="past-exams-btn" id="pastExamsBtn" onclick="togglePastExamsChips()">
+                <span class="past-exams-btn-icon">📚</span>
+                احصل على امتحانات الباكالوريا السابقة
+                <span class="past-exams-arrow" id="pastExamsArrow">▼</span>
+            </button>
+
+            <div class="past-exams-chips" id="pastExamsChips" style="display:none;">
+                <div class="chip" onclick="selectPastExamsStream(this, 'رياضيات', '📐')">📐 رياضيات</div>
+                <div class="chip" onclick="selectPastExamsStream(this, 'تقنية', '🔧')">🔧 تقنية</div>
+                <div class="chip" onclick="selectPastExamsStream(this, 'علوم', '🌱')">🌱 علوم</div>
+                <div class="chip" onclick="selectPastExamsStream(this, 'اقتصاد', '📊')">📊 اقتصاد</div>
+                <div class="chip" onclick="selectPastExamsStream(this, 'آداب', '📖')">📖 آداب</div>
+                <div class="chip" onclick="selectPastExamsStream(this, 'معلوماتية', '💻')">💻 معلوماتية</div>
+            </div>
+
+            <a href="#" id="pastExamsLink" class="past-exams-link" style="display:none;" target="_blank" rel="noopener">
+                🔗 احصل على امتحانات الباكالوريا الخاص بشعبتك من 2010
+            </a>
+        </div>
+<!-- ✅ Subject Dropdown Bar -->
+<div class="subject-bar" id="subjectBar">
+    <div class="subject-trigger" id="subjectTrigger" onclick="toggleDropdownDirectly()">
+        <span class="subject-icon" id="triggerIcon">📚</span>
+        <span id="triggerText">Toutes les matières</span>
+        <span class="subject-name" id="triggerSubject"></span>
+        <span class="arrow">▼</span>
+    </div>
+
+    <div class="subject-dropdown" id="subjectDropdown" style="display: none;">
+        
+        <!-- 1. للتلخيص والامتحان: مواد مباشرة -->
+        <div id="summarySubjects">
+            <div class="dropdown-label">اختر المادة</div>
+            <div class="chips-grid">
+                <div class="chip" onclick="selectSubjectChip('رياضيات', '📐')">📐 Mathématiques</div>
+                <div class="chip" onclick="selectSubjectChip('فيزياء', '⚡')">⚡ Physique</div>
+                <div class="chip" onclick="selectSubjectChip('علوم', '🌱')">🌱 Sciences (SVT)</div>
+                <div class="chip" onclick="selectSubjectChip('معلوماتية', '💻')">💻 Algo / TIC</div>
+                <div class="chip" onclick="selectSubjectChip('اقتصاد', '📊')">📊 Économie</div>
+                <div class="chip" onclick="selectSubjectChip('تصرف', '📋')">📋 Gestion</div>
+                <div class="chip" onclick="selectSubjectChip('تاريخ', '🌍')">🌍 Histoire-Géo</div>
+                <div class="chip" onclick="selectSubjectChip('عربية', '📖')">📖 Arabe</div>
+                <div class="chip" onclick="selectSubjectChip('فرنسية', '🇫🇷')">🇫🇷 Français</div>
+                <div class="chip" onclick="selectSubjectChip('إنجليزية', '🇬🇧')">🇬🇧 Anglais</div>
+                <div class="chip" onclick="selectSubjectChip('فلسفة', '🤔')">🤔 Philosophie</div>
+            </div>
+        </div>
+
+        <!-- 2. للباكالوريا: شعب ثم مواد (مخفية افتراضياً وتظهر فقط عند اختيار وضع الباك) -->
+        <div id="bacSubjectsContainer" style="display: none;">
+            <div class="dropdown-label">اختر الشعبة</div>
+            <div class="chips-grid section-chips" id="sectionChips">
+                <div class="chip" onclick="selectSection('math', '📐 رياضيات')">📐 رياضيات</div>
+                <div class="chip" onclick="selectSection('technique', '🔧 تقنية')">🔧 تقنية</div>
+                <div class="chip" onclick="selectSection('sciences', '🌱 علوم')">🌱 علوم</div>
+                <div class="chip" onclick="selectSection('economie', '📊 اقتصاد')">📊 اقتصاد</div>
+                <div class="chip" onclick="selectSection('lettres', '📖 آداب')">📖 آداب</div>
+                <div class="chip" onclick="selectSection('info', '💻 معلوماتية')">💻 معلوماتية</div>
+            </div>
+
+            <div id="bacMatieres" style="display: none;">
+                <div class="section-divider"></div>
+                <div class="dropdown-label">اختر المادة</div>
+                <div class="chips-grid" id="bacMatiereChips"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="chatContainer">
+            <div class="msg status" id="initialStatus">اختر وضعاً وابدأ المحادثة ✨</div>
+        </div>
+
+        <div class="input-area">
+            <div id="previewContainer">
+                <img id="previewImg" src="" alt="preview">
+                <button class="remove-preview" onclick="removeImage()">×</button>
+            </div>
+            <div class="input-box">
+                <button class="attach-btn" onclick="document.getElementById('imageInput').click()">📎</button>
+                <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
+                <textarea id="userInputField" rows="1" placeholder="اكتب رسالتك هنا..."
+                    onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea>
+                <button class="send-btn" id="submitBtn" onclick="sendText()">➤</button>
+            </div>
+            <div class="input-hint">Enter للإرسال &nbsp;•&nbsp; Shift+Enter لسطر جديد</div>
+        </div>
+
+    </div><!-- end main-content -->
+</div><!-- end app-body -->
+
+<div id="payModal">
+    <div class="modal-box" style="width:400px; max-height:88vh; overflow-y:auto; padding:0; border-radius:18px;">
+
+        <button class="close-x" onclick="closePayModal()" style="position:sticky;top:0;right:0;z-index:10;margin:14px 14px 0 auto;display:flex;">×</button>
+
+        <!-- STEP 1: Plans -->
+        <div id="step1" style="padding:0 20px 24px;">
+            <div style="text-align:center; padding:4px 0 20px;">
+                <div style="font-size:13px; font-weight:700; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">الاشتراكات</div>
+                <div style="font-size:22px; font-weight:900; color:white;">اختر باقتك</div>
+            </div>
+
+            <!-- Pass 3 Mois -->
+            <div class="sub-plan-card" id="card-3m" onclick="selectPlan('3_months', 49, this)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:16px; font-weight:800; color:white; margin-bottom:3px;">Pass 3 Mois</div>
+                        <div style="font-size:11px; color:var(--muted); direction:rtl;">اشتراك 3 أشهر</div>
+                    </div>
+                    <div class="plan-radio" id="radio-3m"></div>
+                </div>
+                <div style="margin:12px 0 8px;">
+                    <span style="font-size:38px; font-weight:900; color:white;">49</span>
+                    <span style="font-size:15px; color:var(--cyan); font-weight:700;"> د.ت</span>
+                    <span style="font-size:12px; color:var(--muted);"> / 3 mois</span>
+                </div>
+                <ul style="list-style:none; padding:0; margin:0;">
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ تلخيص الدروس</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ تصحيح الامتحانات</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ 8 محاولات يومياً</li>
+                </ul>
+            </div>
+
+            <!-- Pass 6 Mois POPULAIRE -->
+            <div class="sub-plan-card sub-plan-popular" id="card-6m" onclick="selectPlan('6_months', 89, this)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:16px; font-weight:800; color:white; margin-bottom:3px;">
+                            Pass 6 Mois
+                            <span style="font-size:10px; font-weight:700; background:linear-gradient(135deg,#f59e0b,#ef4444); color:white; padding:2px 8px; border-radius:20px; margin-right:6px; vertical-align:middle;">⭐ POPULAIRE</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--muted); direction:rtl;">اشتراك 6 أشهر</div>
+                    </div>
+                    <div class="plan-radio" id="radio-6m"></div>
+                </div>
+                <div style="margin:12px 0 4px;">
+                    <span style="font-size:38px; font-weight:900; color:white;">89</span>
+                    <span style="font-size:15px; color:var(--cyan); font-weight:700;"> د.ت</span>
+                    <span style="font-size:12px; color:var(--muted);"> / 6 mois</span>
+                </div>
+                <div style="display:inline-block; font-size:11px; font-weight:700; background:rgba(16,185,129,0.15); color:var(--green); padding:3px 10px; border-radius:20px; margin-bottom:8px;">Économise 24%</div>
+                <ul style="list-style:none; padding:0; margin:0;">
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ كل مميزات Pass 3 Mois</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ أولوية في الدعم</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ وصول مبكر للميزات الجديدة</li>
+                </ul>
+            </div>
+
+            <!-- Pass Annuel -->
+            <div class="sub-plan-card" id="card-12m" onclick="selectPlan('12_months', 149, this)">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:16px; font-weight:800; color:white; margin-bottom:3px;">Pass Annuel</div>
+                        <div style="font-size:11px; color:var(--muted); direction:rtl;">اشتراك سنوي</div>
+                    </div>
+                    <div class="plan-radio" id="radio-12m"></div>
+                </div>
+                <div style="margin:12px 0 4px;">
+                    <span style="font-size:38px; font-weight:900; color:white;">149</span>
+                    <span style="font-size:15px; color:var(--cyan); font-weight:700;"> د.ت</span>
+                    <span style="font-size:12px; color:var(--muted);"> / 12 mois</span>
+                </div>
+                <div style="display:inline-block; font-size:11px; font-weight:700; background:rgba(16,185,129,0.15); color:var(--green); padding:3px 10px; border-radius:20px; margin-bottom:8px;">Économise 37%</div>
+                <ul style="list-style:none; padding:0; margin:0;">
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ كل مميزات Pass 6 Mois</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ ضمان الرضا أو استرداد المبلغ</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ وصول غير محدود لسنة كاملة</li>
+                </ul>
+            </div>
+
+            <!-- Method Selection -->
+            <div id="method-selection-area" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+                <div style="font-size:12px; color:var(--muted); margin-bottom:10px; text-align:center;">اختر طريقة الدفع:</div>
+                <div class="method-btns">
+                    <button class="method-btn flouci" onclick="selectMethod('flouci')">Flouci</button>
+                    <button class="method-btn d17" onclick="selectMethod('d17')">D17</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Pay -->
+        <div id="step2" style="display:none; padding:32px 24px; text-align:center;">
+            <div style="font-size:40px; margin-bottom:12px;">💳</div>
+            <div style="font-size:18px; font-weight:800; color:white; margin-bottom:6px;">أتمم الدفع</div>
+            <div id="plan-summary-text" style="font-size:13px; color:var(--muted); margin-bottom:20px;"></div>
+            <div style="font-size:30px; font-weight:900; color:var(--green); margin:16px 0; letter-spacing:1px;">+216 00 000 000</div>
+            <div style="font-size:12px; color:var(--muted); margin-bottom:24px;">حوّل المبلغ على هذا الرقم ثم اضغط "تم الدفع"</div>
+            <button class="confirm-btn" onclick="markPaid()">✅ تم الدفع</button>
+        </div>
+
+        <!-- STEP 3: Pending -->
+        <div id="step3" style="display:none; padding:48px 24px; text-align:center;">
+            <div style="font-size:50px; margin-bottom:16px;">⏳</div>
+            <div style="font-size:18px; font-weight:800; color:white; margin-bottom:8px;">قيد المراجعة</div>
+            <div style="font-size:13px; color:var(--muted); line-height:1.7;">سيتم تفعيل حسابك فور مراجعة التحويل من الأدمن</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyB8OgBKYp737V-wFrVlWrrU1ggMB0D2RJA",
+    authDomain: "study-assistant-20303.firebaseapp.com",
+    projectId: "study-assistant-20303",
+    storageBucket: "study-assistant-20303.appspot.com",
+    messagingSenderId: "912118609702",
+    appId: "1:912118609702:web:9db689a41e5b51042cb3e7"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let mode = "", selectedMethod = "", chosenPlan = "", planPrice = 0;
+let chatHistory = [], attachedImageBase64 = null, attachedImageMime = null;
+let selectedStream = "", selectedSubject = "";
+// ✅ متغيرات سجل المحادثات
+let currentChatId = null, currentUser = null;
+// ✅ يصير true لما السيرفر يطلب صورة جديدة للتمرين (بعد وصول حد الـ3 رسائل)
+let requireImageBeforeNextSend = false;
+// 🆕 حالة اشتراك المستخدم Pro — تتحدث تلقائياً من auth.onAuthStateChanged
+let isUserPro = false;
+
+// ==========================================
+// ✨ اقتراحات بداية المحادثة (Start Suggestions)
+// ==========================================
+// 🆕 suggestionId يطابق بالضبط مفاتيح SUGGESTION_REPLIES في السيرفر (summary/exam/bac_mode)
+// الرد الجاهز نفسه بات يتحدد من السيرفر وليس من هنا — هذا يمنع أي تكرار/تضارب بين النصوص
+const START_SUGGESTIONS = [
+    { icon: "📸", text: "ارسل صورة تمرين وخليني نلخصلك أهم النقاط", suggestionId: "summary" },
+    { icon: "📝", text: "عندك امتحان؟ ارسلّي صورته ونصححه سوا خطوة بخطوة", suggestionId: "exam" },
+    { icon: "🎓", text: "تحضر للباكالوريا؟ جرب امتحان مشابه لمواضيع الباك الوطنية", suggestionId: "bac_mode" }
+];
+
+function renderStartSuggestions() {
+    const chatContainer = document.getElementById("chatContainer");
+    if (!chatContainer) return;
+
+    const cardsHtml = START_SUGGESTIONS.map((s, i) => `
+        <div class="suggestion-card" style="animation-delay:${0.15 * (i + 1)}s" onclick="useSuggestion(this)" data-suggestion-id="${s.suggestionId}" data-text="${s.text.replace(/"/g, '&quot;')}">
+            <span class="suggestion-icon">${s.icon}</span>
+            <span class="suggestion-text">${s.text}</span>
+        </div>
+    `).join("");
+
+    chatContainer.innerHTML = `
+        <div class="msg status" id="initialStatus">اختر وضعاً وابدأ المحادثة ✨</div>
+        <div class="start-suggestions" id="startSuggestions">${cardsHtml}</div>
+    `;
+}
+
+// ✅ 🆕 كي يضغط المستخدم على بطاقة اقتراح: تُرسل لنفس مسار /generate مع suggestionId
+// السيرفر يتحقق من كل نفس فحوصات الحد اليومي/الجلسة، ويرد بنص جاهز بلا أي نداء OpenAI (0 توكن)
+// لكن المحاولة تُخصم من الرصيد اليومي بالضبط متل أي رسالة عادية
+async function useSuggestion(el) {
+    const text = el.getAttribute('data-text');
+    const suggestionId = el.getAttribute('data-suggestion-id');
+    if (!text || !suggestionId) return;
+
+    const user = auth.currentUser;
+    if (!user) { showToast("سجّل دخول أولاً"); return; }
+    if (!mode) { showToast("اختر الوضع أولاً"); return; }
+
+    // ✅ نفس قفل "صورة جديدة إجبارية" يتفعّل هنا زادة (متل sendText تماماً)
+    if (requireImageBeforeNextSend) {
+        showToast("📸 يرجى إرسال صورة التمرين الجديدة للمتابعة");
+        return;
+    }
+
+    const chatContainer = document.getElementById("chatContainer");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const initialStatus = document.getElementById("initialStatus");
+    if (initialStatus) initialStatus.remove();
+    const startSuggestions = document.getElementById("startSuggestions");
+    if (startSuggestions) startSuggestions.remove();
+
+    if (!currentChatId) {
+        const chatId = db.collection("users").doc(user.uid).collection("chats").doc().id;
+        currentChatId = chatId;
+        await db.collection("users").doc(user.uid).collection("chats").doc(chatId).set({
+            title: text.length > 25 ? text.substring(0, 25) + '...' : text,
+            mode: mode,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        loadSidebar();
+    }
+
+    const userMsgDiv = document.createElement("div");
+    userMsgDiv.className = "msg user";
+    userMsgDiv.appendChild(document.createTextNode(text));
+    chatContainer.appendChild(userMsgDiv);
+    scrollToBottom();
+
+    const { messageContainer: aiMsgDiv, textDiv } = appendBotMessage("");
+    textDiv.innerHTML = `
+        <div class="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+    `;
+    scrollToBottom();
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        const token = await user.getIdToken(true);
+        const body = {
+            text,
+            mode,
+            selectedSubject,
+            userSection: selectedStream,
+            history: chatHistory,
+            suggestionId // 🆕 هذا هو المفتاح: السيرفر يرد بنص جاهز بلا نداء OpenAI
+        };
+
+        const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || "خطأ");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let accumulated = "";
+        let fullText = "";
+        let isFirstChunk = true;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            accumulated += decoder.decode(value, { stream: true });
+
+            const errorMatch = accumulated.match(/"error"\s*:\s*"([^"]+)"/);
+            if (errorMatch) {
+                // ✅ نفس منطق "السيرفر يطلب صورة جديدة" يتفعّل هنا زادة
+                const requireNewImageMatch = accumulated.match(/"requireNewImage"\s*:\s*true/);
+                if (requireNewImageMatch) {
+                    requireImageBeforeNextSend = true;
+                    chatHistory = [];
+                }
+                aiMsgDiv.className = "msg status";
+                textDiv.innerText = "⚠️ " + errorMatch[1];
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+
+            let cleanText = "";
+            for (const match of accumulated.matchAll(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g)) {
+                let txt = match[1]
+                    .replace(/\\\\/g, "\\")
+                    .replace(/\\n/g, "\n")
+                    .replace(/\\t/g, "\t")
+                    .replace(/\\"/g, '"');
+                cleanText += txt;
+            }
+
+            if (cleanText) {
+                fullText = cleanText;
+                if (isFirstChunk) {
+                    textDiv.innerText = "";
+                    isFirstChunk = false;
+                }
+                textDiv.innerText = cleanText;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        if (fullText) {
+            textDiv.innerHTML = formatAIText(fullText);
+            textDiv.dataset.rawText = fullText;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([aiMsgDiv]).catch(err => console.error(err));
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        chatHistory.push({ role: "user", text });
+        chatHistory.push({ role: "ai", text: fullText });
+
+        await saveCurrentChat();
+
+    } catch (err) {
+        console.error(err);
+        aiMsgDiv.className = "msg status";
+        textDiv.innerText = "⚠️ حدث خطأ، الرجاء المحاولة مرة أخرى.";
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
+}
+
+auth.onAuthStateChanged(async (user) => {
+    const upgradeBtn = document.getElementById("upgradeButton");
+    const proBadge = document.getElementById("proBadge");
+    const daysBadge = document.getElementById("daysLeftBadge");
+    const sidebarProBadge = document.getElementById('sidebarProBadge');
+
+    // الإخفاء الافتراضي الفوري كإجراء أمان لكل المستخدمين الجدد أو غير المشتركين
+    if (proBadge) proBadge.style.setProperty('display', 'none', 'important');
+    if (daysBadge) daysBadge.style.display = 'none';
+    if (sidebarProBadge) sidebarProBadge.style.display = 'none';
+    if (upgradeBtn) upgradeBtn.style.setProperty('display', 'flex', 'important');
+
+    // 🆕 إعادة تعيين احتياطية لحالة Pro قبل أي تحقق (مستخدم غير مسجل = مش Pro)
+    isUserPro = false;
+
+    if (!user) return;
+    currentUser = user;
+
+    try {
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        if (!userDoc.exists) return;
+
+        const userData = userDoc.data();
+        const expiresAt = userData.subscriptionExpiresAt?.toDate();
+
+        if (userData.isPro && expiresAt && expiresAt > new Date()) {
+            isUserPro = true; // 🆕 المستخدم Pro فعلياً وصالح
+            const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 3600 * 24));
+            
+            if (daysBadge) {
+                daysBadge.style.display = "inline-block";
+                daysBadge.innerHTML = `⏳ ${daysLeft} يوم <span class="verified-check">✓</span>`;
+            }
+            
+            if (upgradeBtn) {
+                upgradeBtn.style.setProperty('display', 'none', 'important');
+            }
+            
+            if (proBadge) {
+                proBadge.style.setProperty('display', 'flex', 'important');
+                proBadge.classList.add("pro-days-counter");
+            }
+            if (sidebarProBadge) {
+                sidebarProBadge.style.display = 'inline-flex';
+            }
+        } else {
+            isUserPro = false; // 🆕 مستخدم عادي أو اشتراك منتهي
+            // للمستخدم العادي / الحساب الجديد:
+            if (upgradeBtn) {
+                upgradeBtn.style.setProperty('display', 'flex', 'important');
+            }
+            if (proBadge) {
+                proBadge.classList.remove("pro-days-counter");
+                proBadge.style.setProperty('display', 'none', 'important');
+            }
+            if (daysBadge) {
+                daysBadge.style.display = "none";
+            }
+            if (sidebarProBadge) {
+                sidebarProBadge.style.display = 'none';
+            }
+        }
+    } catch(e) { console.error(e); }
+    loadSidebar();
+});
+// ================= ✅ سجل المحادثات =================
+async function loadSidebar() {
+    if (!currentUser) return;
+    try {
+        const snapshot = await db.collection("users").doc(currentUser.uid)
+            .collection("chats").orderBy("updatedAt", "desc").limit(30).get();
+        const list = document.getElementById("sidebarList");
+        list.innerHTML = "";
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="sidebar-empty">لا توجد محادثات بعد</div>';
+            return;
+        }
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const item = document.createElement("div");
+            item.className = "chat-item" + (doc.id === currentChatId ? " active" : "");
+            item.innerHTML = `
+                <button class="chat-item-delete" onclick="deleteChat('${doc.id}', event)">🗑</button>
+                <div class="chat-item-title">${data.title || "محادثة جديدة"}</div>
+                <div class="chat-item-meta">${data.mode || ""} • ${formatDate(data.updatedAt)}</div>
+            `;
+            item.onclick = (e) => {
+                if (!e.target.classList.contains('chat-item-delete')) openChat(doc.id, data, item);
+            };
+            list.appendChild(item);
+        });
+    } catch(e) { console.error(e); }
+}
+
+function formatDate(ts) {
+    if (!ts) return "";
+    const d = ts.toDate(), now = new Date(), diff = now - d;
+    if (diff < 60000) return "الآن";
+    if (diff < 3600000) return Math.floor(diff / 60000) + " د";
+    if (diff < 86400000) return Math.floor(diff / 3600000) + " س";
+    return d.toLocaleDateString('ar-TN');
+}
+
+async function openChat(chatId, data, itemEl) {
+    currentChatId = chatId;
+    mode = data.mode || "";
+    chatHistory = data.history || [];
+    // ✅ فتح محادثة قديمة يعني رجوع لسياق طبيعي، فما تبقاش الحاجة لصورة جديدة إجبارياً
+    requireImageBeforeNextSend = false;
+    document.querySelectorAll('.chat-item').forEach(c => c.classList.remove('active'));
+    if (itemEl) itemEl.classList.add('active');
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+    if (mode) { const card = document.getElementById(`card-${mode}`); if (card) card.classList.add('active'); }
+    document.getElementById("bacBox").style.display =
+    mode === "bac_mode" ? "flex" : "none";
+
+    document.getElementById("subjectBar").style.display =
+        (mode === "summary" || mode === "exam") ? "block" : "none";
+    const chatContainer = document.getElementById("chatContainer");
+    chatContainer.innerHTML = "";
+
+    chatHistory.forEach(turn => {
+        if (turn.role === "user") {
+            const div = document.createElement("div");
+            div.className = "msg user";
+            div.innerText = turn.text || "";
+            chatContainer.appendChild(div);
+        } else {
+            // ✅ نستعمل appendBotMessage باش الأزرار تتبنى تلقائياً
+            appendBotMessage(turn.text || "", true);
+        }
+    });
+
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise([chatContainer]).catch(err => console.error(err));
+    }
+}
+async function saveCurrentChat() {
+    if (!currentUser || chatHistory.length === 0) return;
+    try {
+        const chatRef = currentChatId
+            ? db.collection("users").doc(currentUser.uid).collection("chats").doc(currentChatId)
+            : db.collection("users").doc(currentUser.uid).collection("chats").doc();
+        currentChatId = chatRef.id;
+        const firstUserMsg = chatHistory.find(t => t.role === "user");
+        await chatRef.set({
+            title: (firstUserMsg?.text || "محادثة جديدة").replace("[صورة]", "📸").slice(0, 40),
+            mode,
+            history: chatHistory,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        loadSidebar();
+    } catch(e) { console.error(e); }
+}
+
+async function deleteChat(chatId, e) {
+    e.stopPropagation();
+    if (!currentUser) return;
+    try {
+        await db.collection("users").doc(currentUser.uid).collection("chats").doc(chatId).delete();
+        if (currentChatId === chatId) newChat();
+        else loadSidebar();
+    } catch(e) { console.error(e); }
+}
+
+function newChat() {
+    currentChatId = null;
+    chatHistory = [];
+    attachedImageBase64 = null;
+    attachedImageMime = null;
+    // ✅ محادثة جديدة = يبدا سياق جديد، ما يبقاش قفل الصورة الإجبارية من قبل
+    requireImageBeforeNextSend = false;
+    document.getElementById("previewContainer").style.display = "none";
+    document.getElementById("imageInput").value = "";
+    renderStartSuggestions();
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.chat-item').forEach(c => c.classList.remove('active'));
+    mode = "";
+}
+
+const subjectsByStream = {
+    math: ["رياضيات", "فيزياء", "علوم طبيعية"],
+    technique: ["تقنية", "رياضيات", "فيزياء"],
+    sciences: ["علوم طبيعية", "رياضيات", "فيزياء", "كيمياء"],
+    economie: ["اقتصاد", "رياضيات", "تصرف", "تاريخ وجغرافيا"],
+    lettres: ["لغة عربية", "لغة فرنسية", "تاريخ وجغرافيا", "فلسفة"],
+    info: ["برمجة", "رياضيات", "فيزياء", "ESTI"]
+};
+
+document.getElementById("streamSelect").addEventListener("change", (e) => {
+    selectedStream = e.target.value;
+    const sub = document.getElementById("subjectSelect");
+    const subjects = subjectsByStream[selectedStream] || [];
+    if (!selectedStream) { sub.style.display = "none"; return; }
+    sub.innerHTML = `<option value="">📚 اختر المادة</option>` +
+        subjects.map(s => `<option value="${s}">${s}</option>`).join("");
+    sub.style.display = "block";
+});
+
+document.getElementById("subjectSelect").addEventListener("change", (e) => {
+    selectedSubject = e.target.value;
+});
+
+
+// 1. دالة تبديل الأوضاع (تلخيص، امتحان، باكلوريا)
+// 1. دالة تبديل الأوضاع الرئيسية
+// دالة موحدة وشاملة لتعيين الوضع وتحديث المتغير والشاشة
+function setMode(modeType) {
+    // 🌟 تصفير الشات الحالي وسجل المحادثة عند تغيير الوضع لبدء شات جديد
+    currentChatId = null;
+    chatHistory = [];
+    // ✅ تغيير الوضع = سياق جديد بالكامل، فما تبقاش الحاجة لصورة جديدة إجبارياً
+    requireImageBeforeNextSend = false;
+    renderStartSuggestions();
+
+    // 1. تعيين القيمة للمتغير الأساسي
+    mode = modeType;
+
+    // 2. إزالة التحديد المرئي عن كل البطاقات وإضافته للبطاقة المختارة
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    const selectedCard = document.getElementById(`card-${modeType}`);
+    if (selectedCard) {
+        selectedCard.classList.add('active');
+    }
+
+    // 3. التحكم في إظهار أو إخفاء حقول الشعب والمواد حسب الوضع المختار
+    const bacBox = document.getElementById('bacBox');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const pastExamsBox = document.getElementById('pastExamsBox');
+
+    if (modeType === 'bac_mode') {
+        if (bacBox) bacBox.style.display = 'block';
+        if (subjectSelect) subjectSelect.style.display = 'none';
+        
+        const trigger = document.getElementById('subjectTrigger');
+        if (trigger) trigger.style.display = 'none';
+
+        // ✅ إظهار زر امتحانات الباكالوريا السابقة وتصفير حالته
+        if (pastExamsBox) pastExamsBox.style.display = 'block';
+        resetPastExamsWidget();
+
+    } else {
+        if (bacBox) bacBox.style.display = 'none';
+        if (subjectSelect) subjectSelect.style.display = 'block';
+        
+        const trigger = document.getElementById('subjectTrigger');
+        if (trigger) trigger.style.display = 'flex';
+
+        // ✅ إخفاء زر امتحانات الباكالوريا السابقة خارج وضع الباكالوريا
+        if (pastExamsBox) pastExamsBox.style.display = 'none';
+        resetPastExamsWidget();
+
+        // 1. إعادة تعيين النص الافتراضي للزر
+        const triggerText = document.getElementById('triggerText');
+        if (triggerText) triggerText.textContent = "Toutes les matières";
+
+        // 2. إعادة تعيين الأيقونة باستخدام الـ ID الصحيح (triggerIcon)
+        const triggerIcon = document.getElementById('triggerIcon');
+        if (triggerIcon) {
+            triggerIcon.innerHTML = "📐"; // ضع هنا رمز الأيقونة الافتراضي (مثل المسطرة أو اتركه فارغاً "")
+        }
+    }
+
+    // 3. إزالة التحديد المرئي عن جميع رقائق المواد
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.classList.remove('selected', 'active');
+    });
+}
+// ✅ تحسين الصورة قبل الإرسال
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxSize = 1000;
+            let w = img.width, h = img.height;
+            if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+            if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.filter = 'contrast(1.1) brightness(1.05)';
+            ctx.drawImage(img, 0, 0, w, h);
+            const improved = canvas.toDataURL('image/jpeg', 0.95);
+            attachedImageBase64 = improved.split(',')[1];
+            attachedImageMime = 'image/jpeg';
+            document.getElementById("previewImg").src = improved;
+            document.getElementById("previewContainer").style.display = "block";
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+function removeImage() {
+    attachedImageBase64 = null; attachedImageMime = null;
+    document.getElementById("imageInput").value = "";
+    document.getElementById("previewContainer").style.display = "none";
+}
+
+function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 150) + "px";
+}
+
+function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText(); }
+}
+
+function formatAIText(text) {
+    if (!text) return '';
+
+    const placeholders = [];
+    let protected_text = text;
+
+    // 1. حماية Display Math ($$ ... $$ أو \[ ... \])
+    protected_text = protected_text.replace(/(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\])/g, (match) => {
+        placeholders.push(match);
+        return `%%MATH${placeholders.length - 1}%%`;
+    });
+
+    // 2. حماية Inline Math ($ ... $ أو \( ... \))
+    protected_text = protected_text.replace(/(\$[^$\n]+?\$|\\\(.*?\\\))/g, (match) => {
+        placeholders.push(match);
+        return `%%MATH${placeholders.length - 1}%%`;
+    });
+
+    // 3. تحويل النص العريض والسطور الجديدة
+    protected_text = protected_text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    protected_text = protected_text.replace(/\n/g, '<br>');
+
+    // 4. استعادة رموز الرياضيات كما هي
+    placeholders.forEach((math, i) => {
+        protected_text = protected_text.replace(`%%MATH${i}%%`, math);
+    });
+
+    return protected_text;
+}
+async function sendText() {
+    const user = auth.currentUser;
+    const chatContainer = document.getElementById("chatContainer");
+    const submitBtn = document.getElementById("submitBtn");
+    const userInputField = document.getElementById("userInputField");
+
+    if (!user) { showToast("سجّل دخول أولاً"); return; }
+    if (!mode) { showToast("اختر الوضع أولاً"); return; }
+
+    // ✅ السيرفر طلب صورة تمرين جديدة (بعد وصول حد الـ3 رسائل) — نمنع إرسال نص بلا صورة
+    if (requireImageBeforeNextSend && !attachedImageBase64) {
+        showToast("📸 يرجى إرسال صورة التمرين الجديدة للمتابعة");
+        return;
+    }
+
+    const text = userInputField.value.trim();
+    if (!text && !attachedImageBase64) { showToast("اكتب رسالة أو أرفق صورة"); return; }
+
+    const initialStatus = document.getElementById("initialStatus");
+    if (initialStatus) initialStatus.remove();
+    // ✅ إخفاء بطاقات الاقتراح فور إرسال أول رسالة
+    const startSuggestions = document.getElementById("startSuggestions");
+    if (startSuggestions) startSuggestions.remove();
+
+    if (!currentChatId && text) {
+        const chatId = db.collection("users").doc(user.uid).collection("chats").doc().id;
+        currentChatId = chatId;
+        await db.collection("users").doc(user.uid).collection("chats").doc(chatId).set({
+            title: text.length > 25 ? text.substring(0, 25) + '...' : text,
+            mode: mode,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        loadSidebar();
+    }
+
+    const userMsgDiv = document.createElement("div");
+    userMsgDiv.className = "msg user";
+    
+    if (attachedImageBase64) {
+        const scanContainer = document.createElement("div");
+        scanContainer.className = "scanning-container";
+        const img = document.createElement("img");
+        img.src = `data:${attachedImageMime};base64,${attachedImageBase64}`;
+        scanContainer.appendChild(img);
+
+        const scanLine = document.createElement("div");
+        scanLine.className = "scan-line";
+        scanLine.id = "activeScanLine";
+        scanContainer.appendChild(scanLine);
+        userMsgDiv.appendChild(scanContainer);
+    }
+
+    if (text) userMsgDiv.appendChild(document.createTextNode(text));
+    chatContainer.appendChild(userMsgDiv);
+    scrollToBottom();
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise([userMsgDiv]).catch(err => console.error(err));
+    }
+
+    const imageToSend = attachedImageBase64;
+    const mimeToSend = attachedImageMime;
+    removeImage();
+    userInputField.value = "";
+    userInputField.style.height = "auto";
+    submitBtn.disabled = true;
+
+    let analysisMsgDiv = null;
+    if (imageToSend) {
+        analysisMsgDiv = document.createElement("div");
+        analysisMsgDiv.className = "msg analysis";
+        analysisMsgDiv.innerHTML = `
+            <span>جاري تحليل الصورة</span>
+            <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        `;
+        chatContainer.appendChild(analysisMsgDiv);
+        scrollToBottom();
+    }
+
+    const { messageContainer: aiMsgDiv, textDiv } = appendBotMessage("");
+
+    // ✨ وضع مؤشر الكتابة الاحترافي فوراً قبل وصول البيانات
+    textDiv.innerHTML = `
+        <div class="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+    `;
+
+    try {
+        const token = await user.getIdToken(true);
+    // ابحث عن هذا الجزء في دالة sendText داخل ملف الـ JS الخاص بك
+const body = {
+    text: text || "حلل هذه الصورة",
+    mode, 
+    selectedSubject,
+    userSection: selectedStream,
+    history: imageToSend ? [] : chatHistory,
+    clearHistory: chatHistory.length === 0 || !!imageToSend,
+    languageHint: text ? (/[a-zA-Z]/.test(text) ? "French" : "Arabic") : "Auto"
+};
+       
+        if (imageToSend) { body.imageBase64 = imageToSend; body.imageMime = mimeToSend; }
+
+        const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || "خطأ");
+
+        const activeScanLine = document.getElementById("activeScanLine");
+        if (activeScanLine) activeScanLine.remove();
+        if (analysisMsgDiv) analysisMsgDiv.remove();
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let accumulated = "";
+        let fullText = "";
+        let isFirstChunk = true; // للتحقق من أول دفعة لتخطي مؤشر الكتابة
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            accumulated += decoder.decode(value, { stream: true });
+
+            const errorMatch = accumulated.match(/"error"\s*:\s*"([^"]+)"/);
+            if (errorMatch) {
+                // ✅ السيرفر يطلب صورة تمرين جديدة (تصفير السياق بعد حد الـ3 رسائل)
+                const requireNewImageMatch = accumulated.match(/"requireNewImage"\s*:\s*true/);
+                if (requireNewImageMatch) {
+                    requireImageBeforeNextSend = true;
+                    chatHistory = []; // ✅ نصفر السياق محلياً بما إن السيرفر صفره من جهته
+                }
+                aiMsgDiv.className = "msg status";
+                textDiv.innerText = "⚠️ " + errorMatch[1];
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                submitBtn.disabled = false;
+                return;
+            }
+
+            let cleanText = "";
+            for (const match of accumulated.matchAll(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g)) {
+                let txt = match[1]
+                    .replace(/\\\\/g, "\\")
+                    .replace(/\\n/g, "\n")
+                    .replace(/\\t/g, "\t")
+                    .replace(/\\"/g, '"');
+                cleanText += txt;
+            }
+
+            if (cleanText) {
+                fullText = cleanText;
+                // عند وصول أول حرف، يتم مسح مؤشر الكتابة وبدء عرض النص بسلاسة
+                if (isFirstChunk) {
+                    textDiv.innerText = "";
+                    isFirstChunk = false;
+                }
+                textDiv.innerText = cleanText; 
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        // ✅ تنسيق نهائي وتطبيق MathJax عند اكتمال الرد
+        if (fullText) {
+            textDiv.innerHTML = formatAIText(fullText);
+            textDiv.dataset.rawText = fullText; 
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([aiMsgDiv]).catch(err => console.error(err));
+            }
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+  if (imageToSend) {
+            chatHistory = [];
+            // ✅ توصلت صورة جديدة بنجاح — القفل ما عادش لازم
+            requireImageBeforeNextSend = false;
+        }
+        chatHistory.push({ role: "user", text: text || "[صورة]" });
+        chatHistory.push({ role: "ai", text: fullText });
+
+        await saveCurrentChat();
+
+    } catch (error) {
+        const activeScanLine = document.getElementById("activeScanLine");
+        if (activeScanLine) activeScanLine.remove();
+        if (typeof analysisMsgDiv !== 'undefined' && analysisMsgDiv) analysisMsgDiv.remove();
+        console.error(error);
+        aiMsgDiv.className = "msg status";
+        textDiv.innerText = "⚠️ حدث خطأ، الرجاء المحاولة مرة أخرى.";
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+// ==========================================
+// 💳 دوال نافذة الاشتراكات (Modal)
+// ==========================================
+
+function openPayModal() {
+    ["step1","step2","step3"].forEach(s => document.getElementById(s).style.display = s === "step1" ? "block" : "none");
+    document.getElementById("method-selection-area").style.display = "none";
+    document.querySelectorAll('.plan-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById("payModal").classList.add("show");
+}
+
+function closePayModal() { 
+    document.getElementById("payModal").classList.remove("show"); 
+}
+
+function selectPlan(planType, price, el) {
+    chosenPlan = planType; 
+    planPrice = price;
+    document.querySelectorAll('.sub-plan-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.plan-radio').forEach(r => r.classList.remove('checked'));
+    
+    const cardMap = {'3_months':'card-3m','6_months':'card-6m','12_months':'card-12m'};
+    const radioMap = {'3_months':'radio-3m','6_months':'radio-6m','12_months':'radio-12m'};
+    const card = document.getElementById(cardMap[planType]);
+    const radio = document.getElementById(radioMap[planType]);
+    if (card) card.classList.add('selected');
+    if (radio) radio.classList.add('checked');
+    document.getElementById("method-selection-area").style.display = "block";
+}
+
+function selectMethod(method) {
+    selectedMethod = method;
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+    const names = { '3_months': '3 أشهر', '6_months': '6 أشهر', '12_months': 'سنة كاملة' };
+    document.getElementById("plan-summary-text").innerText =
+        `باقة ${names[chosenPlan]} — ${planPrice} د.ت عبر ${method.toUpperCase()}`;
+}
+
+function markPaid() {
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step3").style.display = "block";
+    sendPendingPayment();
+}
+
+async function sendPendingPayment() {
+    try {
+        const user = auth.currentUser; 
+        if (!user) return;
+        
+        const token = await user.getIdToken(true);
+        
+        // إرسال طلب الدفع مع طريقة الدفع المحددة
+        await fetch(window.location.origin + "/flouci-create", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": "Bearer " + token, 
+                "X-PAY-METHOD": selectedMethod 
+            },
+            body: JSON.stringify({ plan: chosenPlan, price: planPrice })
+        });
+        
+        // إظهار رسالة النجاح للمستخدم
+        showToast("✅ تم الإرسال! سيتم التفعيل بعد مراجعة التحويل.");
+        
+        // تشغيل الإشعار الاحترافي وهتزاز الجرس ونقطة التنبيه
+        
+        
+        // إغلاق نافذة الدفع
+        closePayModal();
+
+    } catch(err) { 
+        console.error(err); 
+        showToast("حدث خطأ."); 
+    }
+}
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    // إنشاء عنصر الإشعار
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.innerText = message;
+    
+    container.appendChild(toast);
+    
+    // إظهار الإشعار بحركة سلسة
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // إخفاء الإشعار وحذفه تلقائياً بعد 3 ثوانٍ
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+
+   // دالة تمرير المحادثات للأسفل
+function scrollToBottom() {
+    const chatContainer = document.getElementById("chatContainer");
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+}
+
+// التحكم في إظهار شريط المواد حسب الوضع (تلخيص أو باكالوريا)
+function showSubjectBar(modeType) {
+    const bar = document.getElementById('subjectBar');
+    if (bar) bar.style.display = 'block';
+
+    const summarySubjects = document.getElementById('summarySubjects');
+    const bacSubjectsContainer = document.getElementById('bacSubjectsContainer');
+
+    if (modeType === 'bac_mode') {
+        if (summarySubjects) summarySubjects.style.display = 'none';
+        if (bacSubjectsContainer) bacSubjectsContainer.style.display = 'block';
+    } else {
+        if (summarySubjects) summarySubjects.style.display = 'block';
+        if (bacSubjectsContainer) bacSubjectsContainer.style.display = 'none';
+    }
+}
+
+function toggleDropdownDirectly() {
+    console.log("تم النقر على الزر!"); // إذا لم تظهر هذه الرسالة، فالمشكلة في الـ HTML
+    const dropdown = document.getElementById('subjectDropdown');
+    const trigger = document.getElementById('subjectTrigger');
+    
+    if (!dropdown) {
+        console.error("لم يتم العثور على عنصر subjectDropdown!");
+        return;
+    }
+
+    // إجبار القائمة على التغير
+    if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+        dropdown.style.display = 'block';
+        trigger.classList.add('open');
+    } else {
+        dropdown.style.display = 'none';
+        trigger.classList.remove('open');
+    }
+}
+
+// 3. التشغيل التلقائي للوضع الافتراضي عند الفتح
+window.addEventListener('DOMContentLoaded', () => {
+    setMode('summary');
+});
+document.addEventListener('click', function(e) {
+    const trigger = document.getElementById('subjectTrigger');
+    const dropdown = document.getElementById('subjectDropdown');
+    
+    if (trigger && dropdown) {
+        // إذا كان النقر تم خارج الزر وخارج القائمة، قم بإغلاقها
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+            dropdown.classList.remove('open');
+            trigger.classList.remove('open');
+          
+        }
+    }
+});
+// خريطة المواد لكل شعبة (خاصة بالباكالوريا)
+const streamSubjectsMap = {
+    math: [
+        { name: 'رياضيات', icon: '📐' },
+        { name: 'فيزياء', icon: '⚡' },
+        { name: 'علوم', icon: '🌱' },
+        { name: 'فلسفة', icon: '🤔' }
+    ],
+    technique: [
+        { name: 'رياضيات', icon: '📐' },
+        { name: 'فيزياء', icon: '⚡' },
+        { name: 'تكنولوجيا', icon: '⚙️' }
+    ],
+    sciences: [
+        { name: 'علوم الحياة والأرض', icon: '🧬' },
+        { name: 'رياضيات', icon: '📐' },
+        { name: 'فيزياء', icon: '⚡' }
+    ],
+    economie: [
+        { name: 'اقتصاد', icon: '📊' },
+        { name: 'تصرف', icon: '📋' },
+        { name: 'تاريخ وجغرافيا', icon: '🌍' }
+    ],
+    lettres: [
+        { name: 'عربية', icon: '📖' },
+        { name: 'فلسفة', icon: '🤔' },
+        { name: 'تاريخ وجغرافيا', icon: '🌍' }
+    ],
+    info: [
+        { name: 'خوارزميات وبرمجة', icon: '💻' },
+        { name: 'رياضيات', icon: '📐' },
+        { name: 'فيزياء', icon: '⚡' }
+    ]
+};
+
+// دالة اختيار الشعبة وإظهار موادها
+function selectSection(streamKey, streamName) {
+    const bacMatieres = document.getElementById('bacMatieres');
+    const bacMatiereChips = document.getElementById('bacMatiereChips');
+    
+    if (!bacMatieres || !bacMatiereChips) return;
+
+    bacMatiereChips.innerHTML = '';
+    const subjects = streamSubjectsMap[streamKey] || [];
+    
+    subjects.forEach(sub => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerHTML = `${sub.icon} ${sub.name}`;
+        chip.onclick = () => selectSubjectChip(sub.name, sub.icon);
+        bacMatiereChips.appendChild(chip);
+    });
+
+    bacMatieres.style.display = 'block';
+}
+
+// دالة اختيار المادة النهائية وإغلاق القائمة
+function selectSubjectChip(subjectName, icon) {
+    const triggerText = document.getElementById('triggerText');
+    const triggerIcon = document.getElementById('triggerIcon');
+    
+    if (triggerText) triggerText.innerText = subjectName;
+    if (triggerIcon) triggerIcon.innerText = icon;
+    
+    const dropdown = document.getElementById('subjectDropdown');
+    const trigger = document.getElementById('subjectTrigger');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+        dropdown.classList.remove('open');
+    }
+    if (trigger) trigger.classList.remove('open');
+}
+
+// ==========================================
+// 🎓 امتحانات الباكالوريا السابقة (زر واحد → اختيار الشعبة → رابط واحد)
+// ==========================================
+
+// 🔒 الرابط الحقيقي ما عادش مكتوب هنا — يتجاب من السيرفر عبر /api/past-exam-link
+// (محمي بـ verifyUser + فحص Pro)، باش ما يبقاش ظاهر لأي حد فـ View Source
+
+function togglePastExamsChips() {
+    const chips = document.getElementById('pastExamsChips');
+    const link = document.getElementById('pastExamsLink');
+    const arrow = document.getElementById('pastExamsArrow');
+    if (!chips) return;
+
+    // إخفاء الرابط عند إعادة فتح قائمة الشعب
+    if (link) link.style.display = 'none';
+
+    const isOpen = chips.style.display === 'flex';
+    if (isOpen) {
+        chips.style.display = 'none';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+    } else {
+        chips.style.display = 'flex';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+    }
+}
+
+// 🆕 محمي فعلياً من السيرفر: الرابط يتجاب فقط بعد تحقق Pro حقيقي بالـ token
+// المستخدم المجاني (حتى لو بدل isUserPro يدوياً فالـ Console) يوقف عند رد 403 من السيرفر
+async function selectPastExamsStream(chipEl, streamName, icon) {
+    const chips = document.getElementById('pastExamsChips');
+    const link = document.getElementById('pastExamsLink');
+    const arrow = document.getElementById('pastExamsArrow');
+
+    // تمييز الشعبة المختارة بصرياً
+    document.querySelectorAll('#pastExamsChips .chip').forEach(c => c.classList.remove('active'));
+    if (chipEl) chipEl.classList.add('active');
+
+    // إغلاق قائمة الشعب بأنيميشن ناعمة
+    if (chips) chips.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+    if (link) link.style.display = 'none';
+
+    const user = auth.currentUser;
+    if (!user) { showToast("سجّل دخول أولاً"); return; }
+
+    try {
+        const token = await user.getIdToken(true);
+        const response = await fetch("/api/past-exam-link", {
+            method: "GET",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const data = await response.json().catch(() => ({}));
+
+        // 🔒 السيرفر هو اللي يقرر — 403 يعني مش Pro فعلاً (بغض النظر عن أي قيمة محلية فالفرونت)
+        if (!response.ok || data.upgradeRequired) {
+            showToast("🔒 هذا المحتوى متاح فقط لمشتركي Pro");
+            openPayModal();
+            return;
+        }
+
+        // إظهار رابط واحد بأنيميشن ظهور جميلة — الرابط جاي من السيرفر مباشرة
+        if (link && data.link) {
+            link.href = data.link;
+            link.style.display = 'none';
+            void link.offsetWidth; // إعادة تشغيل الأنيميشن من جديد
+            link.style.display = 'inline-flex';
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("حدث خطأ، حاول مرة أخرى");
+    }
+}
+
+function resetPastExamsWidget() {
+    const chips = document.getElementById('pastExamsChips');
+    const link = document.getElementById('pastExamsLink');
+    const arrow = document.getElementById('pastExamsArrow');
+    if (chips) chips.style.display = 'none';
+    if (link) link.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+    document.querySelectorAll('#pastExamsChips .chip').forEach(c => c.classList.remove('active'));
+}
+ document.addEventListener("DOMContentLoaded", () => {
+        const sidebar = document.getElementById('appSidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        // فتح القائمة
+        if (sidebarToggleBtn && sidebar) {
+            sidebarToggleBtn.addEventListener('click', () => {
+                sidebar.classList.add('open');
+                if (sidebarOverlay) sidebarOverlay.classList.add('show');
+            });
+        }
+
+        // إغلاق القائمة عبر زر الإغلاق
+        if (closeSidebarBtn && sidebar) {
+            closeSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+            });
+        }
+
+        // إغلاق القائمة عند النقر على الخلفية المعتمة
+        if (sidebarOverlay && sidebar) {
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+            });
+        }
+
+        // ربط إيميل المستخدم الحقيقي في القائمة الجانبية
+        if (typeof auth !== 'undefined') {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    const userEmailSpan = document.getElementById('sidebarUserEmail');
+                    if (userEmailSpan) {
+                        userEmailSpan.innerText = user.email || "حساب الطالب";
+                    }
+                }
+            });
+        }
+
+        // زر تسجيل الخروج من القائمة
+        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+        if (sidebarLogoutBtn && typeof auth !== 'undefined') {
+            sidebarLogoutBtn.addEventListener('click', async () => {
+                try {
+                    await auth.signOut();
+                    if (typeof showToast === 'function') showToast("تم تسجيل الخروج بنجاح");
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } catch (error) {
+                    console.error(error);
+                    if (typeof showToast === 'function') showToast("حدث خطأ أثناء تسجيل الخروج");
+                }
+            });
+        }
+    });
+    function addChatToHistory(chatTitle) {
+    // 1. تحديد حاوية السجل
+    const historyContainer = document.getElementById('chatHistoryContainer');
+    
+    // 2. إنشاء عنصر جديد للشات
+    const chatItem = document.createElement('div');
+    chatItem.className = 'chat-item';
+    
+    // 3. وضع الأيقونة والنص بداخل العنصر
+    chatItem.innerHTML = `
+        <span class="chat-icon">💬</span>
+        <span class="chat-title">${chatTitle}</span>
+    `;
+    
+    // 4. إضافة المحادثة الجديدة في أعلى القائمة
+    historyContainer.prepend(chatItem);
+}
+// تشغيل الوضع الافتراضي (تلخيص) عند تحميل الصفحة لأول مرة
+window.addEventListener('DOMContentLoaded', () => {
+    showSubjectBar('summary');
+});
+
+function startNewChat() {
+    currentChatId = null; // تفريغ معرف المحادثة الحالية لتصبح جديدة
+    chatHistory = []; // مسح سجل الرسائل المؤقت
+    // ✅ محادثة جديدة = يبدا سياق جديد، ما يبقاش قفل الصورة الإجبارية من قبل
+    requireImageBeforeNextSend = false;
+    
+    renderStartSuggestions();
+    
+    // إخفاء حقل الصور أو أي معاينة سابقة إن وجدت
+    if (typeof removeImage === 'function') {
+        removeImage();
+    }
+    
+    // إغلاق القائمة الجانبية تلقائياً بعد الضغط (اختياري حسب رغبتك)
+    const sidebar = document.getElementById("appSidebar");
+    if (sidebar) {
+        sidebar.classList.remove("open"); // أو الكلاس الذي تستخدمه لإخفاء القائمة
+    }
+}
+function convertMathToReadableText(text) {
+    if (!text) return '';
+    let result = text;
+    result = result.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)');
+    result = result.replace(/\^\{([^{}]+)\}/g, '^($1)');
+    result = result.replace(/\\lim_?\{?([^{}]*)\}?/g, 'lim($1) ');
+    result = result.replace(/\\infty/g, '∞');
+    result = result.replace(/\\to/g, '→');
+    result = result.replace(/\\sqrt\{([^{}]+)\}/g, '√($1)');
+    result = result.replace(/\\cdot/g, '×');
+    result = result.replace(/\\pm/g, '±');
+    result = result.replace(/\\times/g, '×');
+    result = result.replace(/\\div/g, '÷');
+    result = result.replace(/\\leq/g, '≤');
+    result = result.replace(/\\geq/g, '≥');
+    result = result.replace(/\\neq/g, '≠');
+    result = result.replace(/\$\$|\$|\\\[|\\\]|\\\(|\\\)/g, '');
+    result = result.replace(/\\left|\\right/g, '');
+    result = result.replace(/\*\*(.+?)\*\*/g, '$1');
+    result = result.replace(/\\/g, '');
+    return result.trim();
+}
+// ==========================================
+// 📋 دالة نسخ ذكية مع خطة بديلة (Fallback) لما لا تعمل Clipboard API
+// ==========================================
+async function copyTextToClipboard(text) {
+    // المحاولة الأولى: Clipboard API الحديثة (تحتاج HTTPS / سياق آمن)
+    if (navigator.clipboard && window.isSecureContext) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (err) {
+            console.warn('⚠️ فشلت Clipboard API، جاري تجربة الطريقة البديلة...', err);
+        }
+    }
+
+    // الطريقة البديلة: عنصر textarea مخفي + execCommand('copy')
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        // إخفاء العنصر تماماً عن الأنظار بدون تعطيل التحديد
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.width = '2em';
+        textarea.style.height = '2em';
+        textarea.style.padding = '0';
+        textarea.style.border = 'none';
+        textarea.style.outline = 'none';
+        textarea.style.boxShadow = 'none';
+        textarea.style.background = 'transparent';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return successful;
+    } catch (err) {
+        console.error('❌ فشلت طريقة execCommand أيضاً', err);
+        return false;
+    }
+}
+
+// ==========================================
+// 🤖 دالة إضافة رسالة البوت (محدثة وسريعة جداً)
+// ==========================================
+function appendBotMessage(text = "", isSavedMessage = false) {
+    const chatContainer = document.getElementById('chatContainer'); 
+
+    // 1. إنشاء الحاوية الرئيسية والعناصر
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'msg ai bot-message-container';
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'bot-text';
+    
+    // تنسيق النص إذا كان محفوظاً أو إظهاره مباشرة
+    if (isSavedMessage && typeof formatAIText === 'function') {
+        textDiv.innerHTML = formatAIText(text);
+    } else {
+        textDiv.innerHTML = text ? text : '';
+    }
+    messageContainer.appendChild(textDiv);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'message-actions';
+    actionsDiv.style.cssText = 'display: flex; gap: 15px; margin-top: 10px; align-items: center;';
+
+    // 2. بناء الأزرار الأربعة بالأيقونات الصحيحة
+    const copyBtn = createActionButton('<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>', 'نسخ النص');
+    const retryBtn = createActionButton('<polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>', 'إعادة المحاولة');
+    const dislikeBtn = createActionButton('<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.3 9a2 2 0 0 0 2 2.3H10z"></path><path d="M16 2v13"></path>', 'غير مفيد');
+    const likeBtn = createActionButton('<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.3-9a2 2 0 0 0-2-2.3H14z"></path><path d="M8 22V9"></path>', 'مفيد');
+
+    // 3. تفعيل الأحداث للأزرار
+
+    // زر الإعجاب
+    likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        likeBtn.style.color = '#4ade80';
+        setTimeout(() => likeBtn.style.color = '#9ca3af', 1000);
+        if (typeof showToast === 'function') showToast("شكرا لملاحظتك! 👍");
+    });
+
+    // زر عدم الإعجاب
+    dislikeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dislikeBtn.style.color = '#ef4444';
+        setTimeout(() => dislikeBtn.style.color = '#9ca3af', 1000);
+        if (typeof showToast === 'function') showToast("سنعمل على تحسين الإجابة 👎");
+    });
+
+    // زر إعادة المحاولة
+    retryBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof sendText === 'function') {
+            sendText();
+        }
+    });
+copyBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const rawText = textDiv.dataset.rawText || textDiv.innerText || "";   // 🔑 نرجعو LaTeX الخام بلا تحويل
+    const success = await copyTextToClipboard(rawText);
+
+    if (success) {
+        copyBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        `;
+        if (typeof showToast === 'function') showToast("تم نسخ التمرين! 📋");
+        setTimeout(() => {
+            copyBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            `;
+        }, 2000);
+    } else {
+        console.error('فشل النسخ نهائياً (كلتا الطريقتين)');
+        if (typeof showToast === 'function') showToast("فشل النسخ، جرب تحديد النص يدوياً");
+    }
+});
+    actionsDiv.append(copyBtn, retryBtn, dislikeBtn, likeBtn);
+    messageContainer.appendChild(actionsDiv);
+
+    if (chatContainer) {
+        chatContainer.appendChild(messageContainer);
+    }
+
+    return { messageContainer, textDiv };
+}
+
+// ==========================================
+// 🛠️ دالة مساعدة لإنشاء الأزرار بشكل متناسق
+// ==========================================
+function createActionButton(svgPaths, title) {
+    const btn = document.createElement('button');
+    btn.title = title;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgPaths}</svg>`;
+    btn.style.cssText = 'background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s;';
+    btn.onmouseover = () => btn.style.color = '#ffffff';
+    btn.onmouseout = () => btn.style.color = '#9ca3af';
+    return btn;
+}
+// دالة لتوليد النص بأسلوب الكتابة الاحترافية التدريجية
+function typeWriterEffect(element, fullText, speed = 15, onComplete) {
+    let index = 0;
+    element.innerHTML = ""; // تفريغ العنصر في البداية
+    
+    // تخزين النص الخام للاستخدام في زر النسخ لاحقاً
+    element.dataset.rawText = fullText;
+
+    function addNextChunk() {
+        if (index < fullText.length) {
+            // إضافة أجزاء من النص (يمكنك زيادة الخطوات للسرعة أو جعلها حرفاً حرفاً)
+            let charsToAdd = fullText.substring(index, index + 3); 
+            index += 3;
+            
+            // تحديث النص المؤقت (نعرض النص الخام أو النص المعالج جزئياً)
+            element.innerText += charsToAdd;
+            
+            // التمرير التلقائي لأسفل ليبقى المستخدم متابعاً للكتابة
+            element.scrollTop = element.scrollHeight;
+            
+            setTimeout(addNextChunk, speed);
+        } else {
+            // عند الانتهاء تماماً من كتابة النص، نقوم بتطبيق التنسيق النهائي و MathJax
+            element.innerHTML = formatAIText(fullText); // دالة تنسيق النصوص لديك
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([element]).catch(err => console.error(err));
+            }
+            
+            if (typeof onComplete === 'function') {
+                onComplete();
+            }
+        }
+    }
+
+    addNextChunk();
+}
+// 1. نظام الإشعارات (إضافة إشعار جديد)
+function addNotification(title, message) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const storageKey = 'study_notifications_' + user.uid;
+    let notifications = JSON.parse(localStorage.getItem(storageKey)) || [];
+    
+    const newNotification = {
+        id: Date.now(),
+        title: title,
+        message: message
+    };
+    
+    notifications.unshift(newNotification);
+    localStorage.setItem(storageKey, JSON.stringify(notifications));
+
+    // تشغيل التأثيرات
+    const dot = document.getElementById('menuNotificationDot');
+    if (dot) dot.classList.add('active');
+    
+    renderNotifications();
+}
+
+// 2. تحديث قائمة الإشعارات في الصندوق
+function renderNotifications() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    // استخدام مفتاح خاص بالمستخدم الحالي
+    const storageKey = 'study_notifications_' + user.uid;
+    let notifications = JSON.parse(localStorage.getItem(storageKey)) || [];
+    
+    const listContainer = document.getElementById('notificationsList');
+    if (!listContainer) return;
+
+    if (notifications.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #888; font-size: 12px; margin: 10px 0;">لا توجد إشعارات</p>';
+    } else {
+        listContainer.innerHTML = notifications.map(n => `
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid #7c3aed;">
+                <div style="font-weight: bold; font-size: 13px; color: #fff;">${n.title}</div>
+                <div style="font-size: 12px; color: #ccc; margin-top: 4px;">${n.message}</div>
+            </div>
+        `).join('');
+    }
+}
+
+// 3. كود الترحيب (يشتغل عند فتح الصفحة)
+window.addEventListener('DOMContentLoaded', () => {
+    // ننتظر قليلاً ريثما يتأكد نظام التحقق من المستخدم الحالي
+    setTimeout(() => {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        // مفتاح ترحيب خاص بكل مستخدم على حدة
+        const welcomeKey = 'welcomed_before_' + user.uid;
+        
+        renderNotifications();
+        
+        if (!localStorage.getItem(welcomeKey)) {
+            setTimeout(() => {
+                addNotification(
+                    '🎉 أهلاً بك في Study Assistant!',
+                    'مرحباً بك في منصتك الذكية للدراسة. نحن هنا لمساعدتك على التفوق وتحقيق أهدافك بكل سهولة.'
+                );
+                localStorage.setItem(welcomeKey, 'true');
+            }, 1500);
+        }
+    }, 1000);
+});
+
+// دالة التهنئة: لن يتم إرسال الإشعار وتفعيل الجرس إلا إذا قمت باستدعائها هكذا: notifyProActivation(true)
+function notifyProActivation(isActivated) {
+    if (isActivated === true) {
+        addNotification(
+            '✨ مبروك! تم تفعيل حساب الـ PRO',
+            'لقد تم ترقية حسابك بنجاح. استمتع الآن بكافة المزايا المتقدمة بلا حدود!'
+        );
+    }
+}
+// 5. التحكم بفتح وإغلاق القائمة
+const bellBtn = document.getElementById('notificationBellBtn');
+const dropdown = document.getElementById('notificationsDropdown');
+
+bellBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = dropdown.style.display === 'block';
+    dropdown.style.display = isVisible ? 'none' : 'block';
+    
+    // إخفاء النقطة عند الضغط
+    if (!isVisible) {
+        document.getElementById('menuNotificationDot')?.classList.remove('active');
+    }
+});
+
+// إغلاق القائمة عند الضغط في أي مكان
+window.addEventListener('click', () => {
+    if (dropdown) dropdown.style.display = 'none';
+});
+// مراقبة حالة المستخدم وتحديثات الـ PRO في الوقت الفعلي
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        db.collection("users").doc(user.uid).onSnapshot((doc) => {
+            if (!doc.exists) return;
+            const data = doc.data();
+            
+            const notifyKey = 'proNotified_' + user.uid;
+            
+            // إذا أصبح الحساب PRO ولم يسبق إعلامه في هذا الحساب
+            if (data && data.isPro === true) {
+                if (localStorage.getItem(notifyKey) !== 'true') {
+                    
+                    // تشغيل الإشعار والتنبيه
+                    notifyProActivation(true);
+                    
+                    // حفظ أنه تم إعلامه لهذا المستخدم بالذات
+                    localStorage.setItem(notifyKey, 'true');
+                }
+            } else {
+                // إذا لم يعد PRO (لأغراض إعادة التعيين التجريبي)
+                localStorage.removeItem(notifyKey);
+            }
+        });
+    }
+});
+</script>
+
+<style>
+/* ==========================================
+   🎓 تصميم زر وقائمة "امتحانات الباكالوريا السابقة"
+   ========================================== */
+.past-exams-box {
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.past-exams-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px;
+    background: linear-gradient(135deg, #1a1230, #12182a);
+    border: 1.5px solid var(--purple);
+    border-radius: 12px;
+    color: var(--cyan);
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 15px rgba(124, 92, 252, 0.15);
+}
+
+.past-exams-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(124, 92, 252, 0.35);
+    border-color: var(--cyan);
+    background: linear-gradient(135deg, #201640, #14203a);
+}
+
+.past-exams-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.past-exams-btn-icon {
+    font-size: 15px;
+}
+
+.past-exams-arrow {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.25s ease;
+    margin-right: 2px;
+}
+
+.past-exams-chips {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    animation: pastExamsDropIn 0.25s ease;
+}
+
+@keyframes pastExamsDropIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.past-exams-chips .chip.active {
+    border-color: var(--cyan);
+    background: linear-gradient(135deg, #123a3f, #0f2a2e);
+    color: var(--cyan);
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.3);
+}
+
+.past-exams-link {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    margin-top: 14px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--purple2), var(--purple));
+    color: #ffffff !important;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(124, 92, 252, 0.35);
+    animation: pastExamsLinkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.past-exams-link:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 28px rgba(124, 92, 252, 0.5), 0 0 15px rgba(34, 211, 238, 0.25);
+}
+
+.past-exams-link:active {
+    transform: translateY(0) scale(0.98);
+}
+
+@keyframes pastExamsLinkPop {
+    0%   { opacity: 0; transform: scale(0.8) translateY(10px); }
+    60%  { opacity: 1; transform: scale(1.03) translateY(-2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ==========================================
+   ✨ اقتراحات بداية المحادثة (Start Suggestions)
+   ========================================== */
+.start-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 480px;
+    margin: 18px auto 0;
+    padding: 0 12px;
+}
+
+.suggestion-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #1a1230, #12182a);
+    border: 1.5px solid var(--purple, #7c5cfc);
+    border-radius: 14px;
+    color: var(--text, #ffffff);
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.6;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(124, 92, 252, 0.12);
+    opacity: 0;
+    transform: translateY(22px) scale(0.92);
+    filter: blur(6px);
+    will-change: transform, opacity, filter;
+    animation: suggestionCardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.suggestion-card:hover {
+    transform: translateY(-3px) scale(1.015);
+    border-color: var(--cyan, #22d3ee);
+    background: linear-gradient(135deg, #201640, #14203a);
+    box-shadow: 0 10px 26px rgba(124, 92, 252, 0.35), 0 0 16px rgba(34, 211, 238, 0.2);
+}
+
+.suggestion-card:active {
+    transform: translateY(-1px) scale(0.97);
+}
+
+.suggestion-icon {
+    font-size: 19px;
+    flex-shrink: 0;
+    line-height: 1;
+    display: inline-block;
+    animation: suggestionIconPulse 2.6s ease-in-out 0.8s infinite;
+}
+
+.suggestion-text {
+    flex: 1;
+}
+
+@keyframes suggestionCardIn {
+    0%   { opacity: 0; transform: translateY(22px) scale(0.92); filter: blur(6px); }
+    55%  { filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes suggestionIconPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+}
+</style>
+
+<div id="toast-container"></div>
+
+</body>
+</html>

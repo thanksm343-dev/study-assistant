@@ -1,0 +1,27 @@
+{
+  "name": "desktop",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {},
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.18.1",
+    "axios-retry": "^4.5.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.10.0",
+    "node-cron": "^4.5.0",
+    "openai": "^6.49.0"
+  }
+}
