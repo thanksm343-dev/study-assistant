@@ -22,6 +22,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.10.0",
     "node-cron": "^4.5.0",
-    "openai": "^6.49.0"
+    "openai": "^6.49.0",
+    "tesseract.js": "^7.0.0"
   }
 }
