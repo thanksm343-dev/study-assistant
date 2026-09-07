@@ -132,7 +132,7 @@ function detectExamLanguage(text) {
 const firebaseAgent = new https.Agent({ family: 4, keepAlive: true });
 
 admin.initializeApp({
-    credential: admin.credential.cert(require('./serviceAccountKey.json')),
+  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
     httpOptions: {
         timeout: 15000, 
         connectTimeout: 10000,
