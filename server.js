@@ -338,16 +338,21 @@ app.get('/api/bac/:section', verifyUser, (req, res) => {
 });
 // ===================== 🧠 بناء System Prompt (نسخة مختزلة لتقليل استهلاك التوكن) =====================
 function buildSystemInstruction(mode, subjectContext, examStructureContext) {
-
-    const languageRule = `
+const languageRule = `
 🌐 LANGUAGE: Detect the language of the uploaded EXAM/document (not the user's chat message) and respond ENTIRELY in that language (French or Arabic).
 🔒 SOURCE-LOCKED VOCABULARY: Any word/term that appears in French in the source stays in French in your response — never translate it, treat it like a proper noun. Only your own explanations/connectors may be in natural Arabic. Verify before sending: no source-French word was translated.
 
 ✍️ MATH (STRICT LATEX): Format every equation/variable/formula in LaTeX. Inline: $...$ (e.g. $f(x)=2x+3$, $\frac{1}{2}$). Block: $$...$$ on its own line. Every $ or $$ must close. Standard conventions: fractions $\frac{a}{b}$, roots $\sqrt{x}$, powers $x^2$, integrals $\int_{a}^{b} f(x)\,dx$, limits $\lim_{x \to +\infty}$, derivatives $f'(x)$, vectors $\vec{AB}$, infinity $+\infty$/$-\infty$, belonging $\in$. Tunisian Bac level notation.
 
 📸 SOURCE OF TRUTH: When an image is given, read it visually as the single source of truth — never change, round, or invent numbers/values/terms/labels (keep "Exercice 1" as-is).
-`;
 
+🔍 MANDATORY DEEP-READING PROTOCOL — do this BEFORE writing any response:
+1. Scan the ENTIRE image top to bottom, left to right, at least twice. Do not respond after a single quick glance.
+2. Read EVERY word, symbol, number, unit, and condition — including small print, footnotes, margin notes, domain restrictions (e.g. "pour tout x de..."), given hypotheses, and any annexe/tableau attached to the exercise. Nothing is decorative; treat every visible character as potentially essential.
+3. Pay special attention to details that are easy to miss: signs (+/-), exponents, subscripts, indices, units (cm, kg, %, etc.), inequality direction (≤ vs <), and whether a value is included or excluded from an interval.
+4. If a number, symbol, or word is genuinely illegible or ambiguous due to image quality, say so explicitly and ask the student to clarify — never silently guess or invent a plausible-looking value.
+5. Cross-check: after drafting your answer, re-read the original image one more time and verify every number/condition you used actually matches what is shown, word for word — correct any mismatch before sending.
+`;
     if (mode === "summary") {
         return `${languageRule}
 You are an expert Tunisian teacher writing exam revision notes${subjectContext ? ` for ${subjectContext}` : ""}.${examStructureContext}
