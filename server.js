@@ -141,9 +141,23 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-
 // ===================== MIDDLEWARE =====================
 app.use(cors());
+
+// ===================== 🔧 وضع الصيانة (Maintenance Mode) =====================
+app.use((req, res, next) => {
+  const isMaintenanceOn = process.env.MAINTENANCE_MODE === 'true';
+  const isAdmin = req.headers['x-admin-bypass'] === process.env.ADMIN_BYPASS_KEY;
+
+  if (isMaintenanceOn && !isAdmin) {
+    return res.status(503).json({
+      maintenance: true,
+      message: "🔧 المنصة تحت الصيانة حالياً، رح نرجعو قريب. عذراً على الإزعاج!"
+    });
+  }
+  next();
+});
+
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(__dirname, {
     setHeaders: (res, filePath) => {
