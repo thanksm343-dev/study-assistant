@@ -1,0 +1,278 @@
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f0f0f;
+    color:white;
+}
+
+.header{
+    padding:20px;
+    background:#4f46e5;
+    text-align:center;
+    font-size:20px;
+}
+
+.card{
+    background:#1c1c1c;
+    margin:10px;
+    padding:15px;
+    border-radius:10px;
+}
+
+button{
+    margin-top:10px;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.approve{
+    background:#22c55e;
+    color:white;
+}
+
+.refresh{
+    background:#f59e0b;
+    color:black;
+    margin:20px;
+}
+
+/* شاشة حماية تفحص الأدمن أولاً */
+#protection-screen {
+    text-align: center;
+    padding: 50px;
+    font-size: 22px;
+    color: #f59e0b;
+}
+
+/* 🆕 فورم تسجيل دخول الأدمن اليدوي */
+#login-screen {
+    display: none;
+    max-width: 340px;
+    margin: 80px auto;
+    padding: 24px;
+    background: #1c1c1c;
+    border-radius: 12px;
+    text-align: center;
+}
+#login-screen h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+#login-screen input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #0f0f0f;
+    color: white;
+}
+#login-screen button {
+    width: 100%;
+    background: #4f46e5;
+    color: white;
+    padding: 10px;
+    margin-top: 6px;
+}
+#login-error {
+    color: #ef4444;
+    font-size: 13px;
+    min-height: 18px;
+    margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="protection-screen">⏳ جاري التحقق من حالة الدخول...</div>
+
+<!-- 🆕 فورم تسجيل دخول يدوي — يظهر فقط إذا ما فماش مستخدم مسجل دخول -->
+<div id="login-screen">
+    <h2>🔐 دخول الأدمن</h2>
+    <input type="email" id="loginEmail" placeholder="الإيميل" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="كلمة السر" autocomplete="current-password">
+    <button onclick="adminLogin()">دخول</button>
+    <div id="login-error"></div>
+</div>
+
+<div id="main-dashboard-content" style="display: none;">
+    <div class="header">
+        🧑‍💼 Admin Dashboard
+    </div>
+
+    <button class="refresh" onclick="loadPayments()">🔄 Refresh</button>
+
+    <div id="list" style="padding:20px;">Loading...</div>
+</div>
+
+<script>
+
+// ================= FIREBASE INIT =================
+const firebaseConfig = {
+  apiKey:  "AIzaSyB8OgBKYp737V-wFrVlWrrU1ggMB0D2RJA",
+  authDomain: "study-assistant-20303.firebaseapp.com",
+  projectId: "study-assistant-20303"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+console.log("ADMIN DASHBOARD LOADING...");
+
+// 🆕 لا يوجد أي إيميل أو كلمة سر مكتوبة هنا — الدخول يصير يدوياً عبر الفورم فوق.
+// الفحص الحقيقي لصلاحية الأدمن يصير من جهة السيرفر عبر /check-admin (كيفما هو أصلاً).
+
+// ================= MANUAL LOGIN =================
+async function adminLogin() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const errorBox = document.getElementById("login-error");
+    errorBox.textContent = "";
+
+    if (!email || !password) {
+        errorBox.textContent = "أدخل الإيميل وكلمة السر.";
+        return;
+    }
+
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        // onAuthStateChanged تحت رح تتكفل بالباقي (فحص /check-admin وعرض اللوحة)
+    } catch (e) {
+        console.error("Login error:", e);
+        errorBox.textContent = "فشل تسجيل الدخول. تأكد من الإيميل وكلمة السر.";
+    }
+}
+
+// ================= ADMIN CHECK =================
+firebase.auth().onAuthStateChanged(async (user) => {
+
+    if (!user) {
+        // 🆕 ما فماش مستخدم مسجل دخول: نعرض فورم الدخول اليدوي بدل auto-login
+        document.getElementById("protection-screen").style.display = "none";
+        document.getElementById("login-screen").style.display = "block";
+        return;
+    }
+
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("protection-screen").style.display = "block";
+    document.getElementById("protection-screen").innerHTML = "⏳ جاري التحقق من صلاحية الأدمن...";
+
+    try {
+        const token = await user.getIdToken(true);
+
+        const res = await fetch("/check-admin", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+
+        console.log("ADMIN CHECK:", data);
+
+        if (!data.isAdmin) {
+            window.location.href = "/403.html";
+            return;
+        }
+
+        document.getElementById("protection-screen").style.display = "none";
+        document.getElementById("main-dashboard-content").style.display = "block";
+
+        loadPayments();
+
+    } catch (error) {
+        console.error("ADMIN ERROR:", error);
+        window.location.href = "/403.html";
+    }
+});
+
+
+// ================= LOAD PAYMENTS =================
+async function loadPayments(){
+
+    console.log("Loading payments...");
+
+    const snap = await db.collection("payments")
+        .orderBy("createdAt", "desc")
+        .get();
+
+    let html = "";
+
+    snap.forEach(doc => {
+        const data = doc.data();
+        const currentStatus = (data.status || "pending").toLowerCase();
+
+        html += `
+        <div class="card">
+            <b>Order:</b> ${data.orderId || "N/A"}<br>
+            <b>User:</b> ${data.userId || "N/A"}<br>
+            <b>Provider:</b> ${data.provider || "N/A"}<br>
+            <b>Amount:</b> <span style="color:#f59e0b; font-weight:bold;">${data.amount !== undefined ? data.amount : (data.price || "N/A")}</span><br>
+            <b>Status:</b> ${data.status || "pending"}
+
+            <br><br>
+
+            ${currentStatus === "pending" ? `
+                <button class="approve" onclick="approve('${data.orderId}', this)">
+                    Approve
+                </button>
+            ` : `<b style="color:#22c55e;">✔ PRO</b>`}
+        </div>
+        `;
+    });
+
+    document.getElementById("list").innerHTML = html || "No payments";
+}
+
+
+// ================= APPROVE PAYMENT =================
+async function approve(orderId, btn){
+
+    const user = auth.currentUser;
+
+    if(!user){
+        alert("سجّل دخول الأدمن أولاً");
+        return;
+    }
+
+    const token = await user.getIdToken();
+
+    const res = await fetch("/approve-payment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ orderId })
+    });
+
+    const data = await res.json();
+
+    alert(data.message || "Approved");
+
+    btn.parentElement.innerHTML = "✔ PRO ACTIVATED";
+
+    loadPayments();
+}
+
+</script>
+
+</body>
+</html>
