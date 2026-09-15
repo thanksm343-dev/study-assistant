@@ -2960,7 +2960,7 @@ function previewImage(event) {
         const img = new Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            const maxSize = 1000;
+            const maxSize = 800;
             let w = img.width, h = img.height;
             if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
             if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }

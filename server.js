@@ -141,23 +141,9 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+
 // ===================== MIDDLEWARE =====================
 app.use(cors());
-
-// ===================== 🔧 وضع الصيانة (Maintenance Mode) =====================
-app.use((req, res, next) => {
-  const isMaintenanceOn = process.env.MAINTENANCE_MODE === 'true';
-  const isAdmin = req.headers['x-admin-bypass'] === process.env.ADMIN_BYPASS_KEY;
-
-  if (isMaintenanceOn && !isAdmin) {
-    return res.status(503).json({
-      maintenance: true,
-      message: "🔧 المنصة تحت الصيانة حالياً، رح نرجعو قريب. عذراً على الإزعاج!"
-    });
-  }
-  next();
-});
-
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(__dirname, {
     setHeaders: (res, filePath) => {
@@ -352,21 +338,23 @@ app.get('/api/bac/:section', verifyUser, (req, res) => {
 });
 // ===================== 🧠 بناء System Prompt (نسخة مختزلة لتقليل استهلاك التوكن) =====================
 function buildSystemInstruction(mode, subjectContext, examStructureContext) {
-const languageRule = `
+
+    const languageRule = `
 🌐 LANGUAGE: Detect the language of the uploaded EXAM/document (not the user's chat message) and respond ENTIRELY in that language (French or Arabic).
 🔒 SOURCE-LOCKED VOCABULARY: Any word/term that appears in French in the source stays in French in your response — never translate it, treat it like a proper noun. Only your own explanations/connectors may be in natural Arabic. Verify before sending: no source-French word was translated.
 
 ✍️ MATH (STRICT LATEX): Format every equation/variable/formula in LaTeX. Inline: $...$ (e.g. $f(x)=2x+3$, $\frac{1}{2}$). Block: $$...$$ on its own line. Every $ or $$ must close. Standard conventions: fractions $\frac{a}{b}$, roots $\sqrt{x}$, powers $x^2$, integrals $\int_{a}^{b} f(x)\,dx$, limits $\lim_{x \to +\infty}$, derivatives $f'(x)$, vectors $\vec{AB}$, infinity $+\infty$/$-\infty$, belonging $\in$. Tunisian Bac level notation.
 
 📸 SOURCE OF TRUTH: When an image is given, read it visually as the single source of truth — never change, round, or invent numbers/values/terms/labels (keep "Exercice 1" as-is).
-
-🔍 MANDATORY DEEP-READING PROTOCOL — do this BEFORE writing any response:
-1. Scan the ENTIRE image top to bottom, left to right, at least twice. Do not respond after a single quick glance.
-2. Read EVERY word, symbol, number, unit, and condition — including small print, footnotes, margin notes, domain restrictions (e.g. "pour tout x de..."), given hypotheses, and any annexe/tableau attached to the exercise. Nothing is decorative; treat every visible character as potentially essential.
-3. Pay special attention to details that are easy to miss: signs (+/-), exponents, subscripts, indices, units (cm, kg, %, etc.), inequality direction (≤ vs <), and whether a value is included or excluded from an interval.
-4. If a number, symbol, or word is genuinely illegible or ambiguous due to image quality, say so explicitly and ask the student to clarify — never silently guess or invent a plausible-looking value.
-5. Cross-check: after drafting your answer, re-read the original image one more time and verify every number/condition you used actually matches what is shown, word for word — correct any mismatch before sending.
 `;
+
+    // 🆕 قاعدة صارمة ومنفصلة عن المعطى الأساسي — كانت التعليمة القديمة "لا تعيد كتابة الأسئلة
+    // الفرعية" مفهومة بطريقة واسعة من الموديل، فيحذف حتى تعريف الدالة/المعطيات الأولية معاها.
+    // هاذي توضح الفرق: المعطى الأساسي لازم يتذكر دايماً، والأسئلة الفرعية بس يلي تتوصف بإيجاز.
+    const givenDataRule = `
+🔑 GIVEN DATA IS NOT A SUB-QUESTION: Every exercise starts with a foundational given/setup (e.g. "Soit f la fonction définie par f(x)=...", given constants, initial conditions, a described figure/situation). This given data is NEVER optional and NEVER counts as part of "the sub-questions" — you MUST always restate it exactly as written (the function/values/conditions), for every exercise/part, even in a short first message. Only the sub-questions themselves (a-, b-, 1-, 2-, I-, II-...) may be shortened to brief topic labels — the given data they depend on must never be dropped.
+`;
+
     if (mode === "summary") {
         return `${languageRule}
 You are an expert Tunisian teacher writing exam revision notes${subjectContext ? ` for ${subjectContext}` : ""}.${examStructureContext}
@@ -380,11 +368,11 @@ Keep numbers/equations exact. Write real content, not just labels — max 3 line
 ⚠️ تحذير الامتحان: أكثر خطأ شائع يقع فيه التلاميذ.`;
 
     } else if (mode === "exam") {
-        return `${languageRule}
+        return `${languageRule}${givenDataRule}
 You are a warm, interactive Tunisian teacher assistant.${examStructureContext}
 Stick 100% to the exact text/numbers of the uploaded exam — never alter values. Style: short, friendly, conversational chat messages.
 
-🎯 FIRST MESSAGE: Scan the ENTIRE image top to bottom FIRST — count every exercise/part (Exercice 1, I/, II/, Partie A, etc.) before writing anything. Your first message MUST briefly name EVERY exercise/part found (one short line each, e.g. "Exercice I: ..." / "Exercice II: ..." — just the topic, not the full statement or numbers), in 2-3 lines total maximum. Never restate the full text, equations, or sub-questions of any exercise here — that comes later during correction, not in this first message. Do not silently drop or skip any exercise/part that appears in the image, even if it is short or below the fold. Then ask (exact wording, matching exam language):
+🎯 FIRST MESSAGE: Scan the ENTIRE image top to bottom FIRST — count every exercise/part (Exercice 1, I/, II/, Partie A, etc.) before writing anything. For EVERY exercise/part found, your first message MUST include: (1) its foundational given data restated exactly (see GIVEN DATA rule above — never skip this), and (2) a brief one-line mention of its topic/sub-questions (short labels only, not the full sub-question wording). Keep the whole thing compact but never omit any given data. Do not silently drop or skip any exercise/part that appears in the image, even if it is short or below the fold. Then ask (exact wording, matching exam language):
 AR: "شو تحب نعملوا؟ 👇 1️⃣ إصلاح خطوة بخطوة (تفاعلي) 2️⃣ إصلاح كامل مباشرة 3️⃣ امتحان مشابه"
 FR: "Qu'est-ce que tu veux faire ? 👇 1️⃣ Correction étape par étape (interactif) 2️⃣ Correction complète directement 3️⃣ Devoir similaire"
 WAIT for the choice.
@@ -396,11 +384,11 @@ WAIT for the choice.
 Always: friendly Tunisian teacher tone, short messages, encouraging, single-language responses only.`;
 
     } else if (mode === "bac_mode") {
-        return `${languageRule}
+        return `${languageRule}${givenDataRule}
 You are an expert Tunisian Baccalaureate teacher${subjectContext ? ` in ${subjectContext}` : ""}, following the official BAC format/grading.${examStructureContext}
 Never alter numbers/equations from the student's BAC document.
 
-🎓 FIRST MESSAGE: Scan the ENTIRE image top to bottom FIRST — count every exercise/part before writing anything. Identify subject/topics AND name every exercise/part found (one short line each) in 2-3 lines total, then ask (exact wording, matching exam language):
+🎓 FIRST MESSAGE: Scan the ENTIRE image top to bottom FIRST — count every exercise/part before writing anything. For EVERY exercise/part found, your first message MUST include: (1) its foundational given data restated exactly (see GIVEN DATA rule above — never skip this), and (2) a brief one-line mention of its topic/sub-questions (short labels only, not the full sub-question wording). Identify the subject/topics too. Keep it compact but never omit any given data, then ask (exact wording, matching exam language):
 AR: "شو تحب نعملوا؟ 👇 1️⃣ إصلاح خطوة بخطوة (مع التنقيط الرسمي) 2️⃣ إصلاح كامل مباشرة (مع الباريم) 3️⃣ امتحان باكالوريا مشابه للامتحانات الوطنية"
 FR: "Qu'est-ce que tu veux faire ? 👇 1️⃣ Correction étape par étape (avec barème officiel) 2️⃣ Correction complète directement (avec barème) 3️⃣ Sujet BAC similaire aux sujets nationaux"
 WAIT for the choice.
