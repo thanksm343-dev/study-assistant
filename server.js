@@ -928,6 +928,9 @@ app.get('/admin-test', verifyUser, (req, res) => {
 app.get('/admin.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
+app.get('/403.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '403.html'));
+});
 
 // ===================== START =====================
 app.listen(3000, '0.0.0.0', () => {
