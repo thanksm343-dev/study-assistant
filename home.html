@@ -1354,7 +1354,7 @@ textarea#userInputField::placeholder { color: var(--muted); }
 
 /* تأثير الرموز المتوهجة بشكل ساطع وقوي جداً */
 #chatContainer::before {
-    content: "∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩";
+    content: "∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩ ∑ ∫ π Δ Ω √2 E=mc² f(x) ∂x A·B sin(θ) ∇×B = μ₀J λ μ σ ∞ lim ∮ dV z = x + iy H(ψ) = Eψ ∰ ∇²ψ ΔABC ⟷ ∃∀ ∡ ≅ ∴ ∵ ⊂ ⊃ ∪ ∩";
     position: absolute;
     top: 0;
     left: 0;
@@ -2404,7 +2404,7 @@ textarea#userInputField::placeholder { color: var(--muted); }
                 <ul style="list-style:none; padding:0; margin:0;">
                     <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ تلخيص الدروس</li>
                     <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ تصحيح الامتحانات</li>
-                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ 8 محاولات يومياً</li>
+                    <li style="font-size:12px; color:rgba(255,255,255,0.55); padding:3px 0;">✓ 7 محاولات يومياً</li>
                 </ul>
             </div>
 
@@ -2613,11 +2613,19 @@ async function useSuggestion(el) {
         let accumulated = "";
         let fullText = "";
         let isFirstChunk = true;
+        // 🆕 السيرفر يرسل {"clearHistory": true} عند التصفير الناعم للجلسة (كل 8 رسائل) أو عند وصول صورة جديدة
+        let serverClearedHistory = false;
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             accumulated += decoder.decode(value, { stream: true });
+
+            // 🆕 نصفر الهيستوري محلياً تماماً مثل ما صفره السيرفر
+            if (!serverClearedHistory && /"clearHistory"\s*:\s*true/.test(accumulated)) {
+                chatHistory = [];
+                serverClearedHistory = true;
+            }
 
             const errorMatch = accumulated.match(/"error"\s*:\s*"([^"]+)"/);
             if (errorMatch) {
@@ -2938,6 +2946,9 @@ function setMode(modeType) {
         const triggerText = document.getElementById('triggerText');
         if (triggerText) triggerText.textContent = "Toutes les matières";
 
+        // 🆕 النص رجع "كل المواد" فلازم المادة المرسلة للسيرفر ترجع فارغة كمان
+        selectedSubject = "";
+
         // 2. إعادة تعيين الأيقونة باستخدام الـ ID الصحيح (triggerIcon)
         const triggerIcon = document.getElementById('triggerIcon');
         if (triggerIcon) {
@@ -3142,11 +3153,19 @@ const body = {
         let accumulated = "";
         let fullText = "";
         let isFirstChunk = true; // للتحقق من أول دفعة لتخطي مؤشر الكتابة
+        // 🆕 السيرفر يرسل {"clearHistory": true} عند التصفير الناعم للجلسة (كل 8 رسائل) أو عند وصول صورة جديدة
+        let serverClearedHistory = false;
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             accumulated += decoder.decode(value, { stream: true });
+
+            // 🆕 نصفر الهيستوري محلياً تماماً مثل ما صفره السيرفر
+            if (!serverClearedHistory && /"clearHistory"\s*:\s*true/.test(accumulated)) {
+                chatHistory = [];
+                serverClearedHistory = true;
+            }
 
             const errorMatch = accumulated.match(/"error"\s*:\s*"([^"]+)"/);
             if (errorMatch) {
@@ -3425,6 +3444,10 @@ function selectSection(streamKey, streamName) {
     
     if (!bacMatieres || !bacMatiereChips) return;
 
+    // 🆕 السيرفر يستعمل userSection للبحث في بيانات الباك (math/technique/sciences/info/lettres/economie)
+    selectedStream = streamKey;
+    selectedSubject = "";
+
     bacMatiereChips.innerHTML = '';
     const subjects = streamSubjectsMap[streamKey] || [];
     
@@ -3444,6 +3467,9 @@ function selectSubjectChip(subjectName, icon) {
     const triggerText = document.getElementById('triggerText');
     const triggerIcon = document.getElementById('triggerIcon');
     
+    // 🆕 المادة المختارة لازم تنبعث للسيرفر (selectedSubject) عشان يبني subjectContext والبنية الرسمية
+    selectedSubject = subjectName;
+
     if (triggerText) triggerText.innerText = subjectName;
     if (triggerIcon) triggerIcon.innerText = icon;
     

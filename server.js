@@ -51,8 +51,8 @@ const PORT = process.env.PORT || 3000;
 
 // الحد الأقصى للمحاولات اليومية — 7 رسائل ناجحة، والثامنة توقف
 const DAILY_LIMIT = 7; 
-// الحد الأقصى لعداد الجلسة الواحدة (يشمل الصورة الأولى + الرسائل النصية) قبل طلب صورة جديدة
-const MAX_MESSAGES_PER_SESSION = 3;
+// الحد الأقصى لعداد الجلسة الواحدة (يشمل الصورة الأولى + الرسائل النصية) قبل تصفير الهيستوري
+const MAX_MESSAGES_PER_SESSION = 8; // 🧪 تجربة: كان 3 — الآن 8 مع "تصفير ناعم" بلا طلب صورة جديدة
 
 // 🆕 ===================== 💬 ردود الاقتراحات الجاهزة (بلا أي نداء OpenAI — 0 توكن) =====================
 // كل مفتاح يقابل زر الاقتراح في الواجهة (تلخيص / امتحان / باكالوريا)
@@ -534,40 +534,26 @@ app.post('/generate', verifyUser, async (req, res) => {
     let examLanguage = userData.currentExamLanguage || null;
     let exerciseContext = imageBase64 ? "" : (userData.exerciseContext || "");
 
-    // ===================== 🛑 الفحص الوحيد لحد الـ3 رسائل (صورة أو نص أو اقتراح، بلا تمييز) =====================
-    // 🆕 إصلاح: إذا الرسالة اللي وصلت للحد فيها صورة جديدة، نعتبرها هي نفسها "الصورة الجديدة"
-    // المطلوبة ونعالجها مباشرة بدل ما نرفضها ونضيّع معطياتها (كانت قبل ترجع خطأ وتطلب صورة
-    // جديدة حتى لو الصورة كانت موجودة فنفس الطلب، فيضطر المستخدم يبعثها مرة ثانية ويحس إنها ضاعت)
+    // ===================== 🧪 تصفير "ناعم" للجلسة كل MAX_MESSAGES_PER_SESSION رسالة =====================
+    // 🆕 بدل التصميم القديم (وقف الطلب + طلب صورة جديدة إجباري)، هنا نصفر بس الهيستوري
+    // المرسل لـ OpenAI (توكنز الشات) ونعلم الواجهة بـ clearHistory، لكن نكمل معالجة نفس
+    // رسالة المستخدم عادي (بلا وقف)، ونحافظ على exerciseContext/currentExamLanguage
+    // باش الموديل يقدر يكمل التمرين بلا ما يحتاج صورة جديدة.
+    let forceHistoryReset = false;
+
     if (sessionMessageCount >= MAX_MESSAGES_PER_SESSION && !imageBase64) {
-      console.log(`🛑 [Session Limit Reached]: أتم المستخدم ${MAX_MESSAGES_PER_SESSION} رسائل. جاري تصفير السياق والتوكنز...`);
-      
-      // 1. تصفير الهيستوري في الواجهة
+      console.log(`🔄 [Soft Session Reset]: أتم المستخدم ${MAX_MESSAGES_PER_SESSION} رسائل. تصفير الهيستوري بلا طلب صورة جديدة (وضع تجريبي).`);
+
       res.write(`data: ${JSON.stringify({ clearHistory: true })}\n\n`);
       if (typeof res.flush === 'function') res.flush();
 
-      // 2. هذي الرسالة (رسالة التنبيه) تُحتسب كمحاولة كاملة من الـ7 اليومية — نخصمها هنا
-      //    مع تصفير عداد الجلسة (يبدأ يعد من جديد لـ3 رسائل أخرى) وتفريغ السياق
-      await userRef.update({
-        usage: admin.firestore.FieldValue.increment(1),
-        usageLeft: admin.firestore.FieldValue.increment(-1),
-        messageCount: messageCount + 1,
-        sessionMessageCount: 0,
-        exerciseContext: null,
-        currentExamLanguage: null,
-        lastUsedDate: todayStr
-      });
-
-      // 3. إرسال تنبيه للمستخدم بضرورة إرسال صورة جديدة لتجديد السياق
-      res.write(`data: ${JSON.stringify({ 
-        error: `📌 وصلت للحد الأقصى من الأسئلة على هذا التمرين. من فضلك أرسل صورة التمرين من جديد للمتابعة.`,
-        requireNewImage: true 
-      })}\n\n`);
-      console.log(`✅ [Session Notice Sent] هذي الرسالة احتُسبت كمحاولة يومية | المحاولات اليومية المتبقية: ${currentUsageLeft - 1}/${DAILY_LIMIT}`);
-      return res.end();
+      sessionMessageCount = 0;
+      forceHistoryReset = true;
+      // ⚠️ عمداً: ما نصفروش exerciseContext ولا currentExamLanguage هنا
     }
 
     // ===================== 💬 رد جاهز على اقتراح (بلا أي نداء OpenAI — 0 توكن) =====================
-    // ⚠️ لازم يجي بعد فحص حد الـ3 رسائل مباشرة، وقبل أي تجهيز لرسائل OpenAI
+    // ⚠️ لازم يجي بعد فحص الـ soft reset مباشرة، وقبل أي تجهيز لرسائل OpenAI
     if (suggestionId && SUGGESTION_REPLIES[suggestionId]) {
       const cannedText = SUGGESTION_REPLIES[suggestionId];
       res.write(`data: ${JSON.stringify({ text: cannedText })}\n\n`);
@@ -603,7 +589,7 @@ app.post('/generate', verifyUser, async (req, res) => {
       if (typeof res.flush === 'function') res.flush();
       console.log(`🧹 [New Image Uploaded]: تصفير سياق التمرين. الصورة تُحتسب كرسالة عادية ضمن عداد الجلسة.`);
 
-      // 🆕 إذا هاذي الصورة الجديدة وصلت ونحن أصلاً على/فوق حد الـ3 رسائل، نعتبرها بداية
+      // 🆕 إذا هاذي الصورة الجديدة وصلت ونحن أصلاً على/فوق حد الجلسة، نعتبرها بداية
       // جلسة جديدة وعداد الجلسة يرجع يبدا من 1 (بدل ما يكمل يزيد فوق الحد)
       if (sessionMessageCount >= MAX_MESSAGES_PER_SESSION) {
         sessionMessageCount = 0;
@@ -666,7 +652,7 @@ app.post('/generate', verifyUser, async (req, res) => {
     let messages = [{ role: "system", content: systemInstructionText }];
 
     const MAX_HISTORY_MESSAGES = 3; 
-    let useHistory = imageBase64 ? [] : (history || []);
+    let useHistory = (imageBase64 || forceHistoryReset) ? [] : (history || []);
     if (useHistory.length > MAX_HISTORY_MESSAGES) {
       useHistory = useHistory.slice(-MAX_HISTORY_MESSAGES);
     }
