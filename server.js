@@ -531,7 +531,9 @@ app.post('/generate', verifyUser, async (req, res) => {
       return res.end();
     }
 
-    let examLanguage = userData.currentExamLanguage || null;
+    // 🆕 [تصفير كامل مع كل صورة جديدة] — إذا فيه صورة جديدة: نبدأ من الصفر تماماً
+    // (اللغة المحفوظة + سياق التمرين القديم ما نورثوهم أبداً). الصورة القديمة تنسى كلياً.
+    let examLanguage = imageBase64 ? null : (userData.currentExamLanguage || null);
     let exerciseContext = imageBase64 ? "" : (userData.exerciseContext || "");
 
     // ===================== 🧪 تصفير "ناعم" للجلسة كل MAX_MESSAGES_PER_SESSION رسالة =====================
@@ -583,13 +585,15 @@ app.post('/generate', verifyUser, async (req, res) => {
       return res.end();
     }
 
-    // ===================== 🖼️ إذا أرسل المستخدم صورة جديدة: تصفير كامل لسياق التمرين =====================
+    // ===================== 🖼️ إذا أرسل المستخدم صورة جديدة: تصفير كامل لكل شيء قديم =====================
+    // الهيستوري (يتجاهل فالسيرفر + clearHistory للواجهة) + سياق التمرين + لغة التمرين.
+    // عداد المحاولات ما يتصفرش (الصورة تُحتسب كرسالة عادية) إلا إذا كنا عند حد الجلسة (8).
     if (imageBase64) {
       res.write(`data: ${JSON.stringify({ clearHistory: true })}\n\n`);
       if (typeof res.flush === 'function') res.flush();
-      console.log(`🧹 [New Image Uploaded]: تصفير سياق التمرين. الصورة تُحتسب كرسالة عادية ضمن عداد الجلسة.`);
+      console.log(`🧹 [New Image Uploaded]: تصفير كامل (هيستوري + سياق + لغة). الصورة تُحتسب كرسالة عادية ضمن عداد الجلسة.`);
 
-      // 🆕 إذا هاذي الصورة الجديدة وصلت ونحن أصلاً على/فوق حد الجلسة، نعتبرها بداية
+      // إذا هاذي الصورة الجديدة وصلت ونحن أصلاً على/فوق حد الجلسة، نعتبرها بداية
       // جلسة جديدة وعداد الجلسة يرجع يبدا من 1 (بدل ما يكمل يزيد فوق الحد)
       if (sessionMessageCount >= MAX_MESSAGES_PER_SESSION) {
         sessionMessageCount = 0;
@@ -642,6 +646,11 @@ app.post('/generate', verifyUser, async (req, res) => {
       systemInstructionText += `\n\n📋 EXERCISE CONTEXT:\n${exerciseContext}`;
     }
 
+    // 🆕 تنبيه صريح للموديل: صورة جديدة = تمرين جديد مستقل، تجاهل أي شيء سابق
+    if (imageBase64) {
+      systemInstructionText += `\n\n🆕 NEW IMAGE: The student just uploaded a NEW image. Treat it as a brand-new, independent exercise. Completely ignore any previous exercise, image, or conversation — rely ONLY on this image.`;
+    }
+
     // 🆕 [إصلاح باغ الرد بالعربية على تمرين فرنسي] — اللغة المكتشفة بالـ OCR (examLanguage) كانت
     // تتخزن فـ Firestore بس بلا ما تنقال فعلياً للموديل فهاذي الرسالة، فيبقى يخمّن اللغة من الصورة
     // فقط ويغلط أحياناً. نفرضها هنا صراحة كتعليمة صارمة، بغض النظر عن لغة كتابة التلميذ فالشات.
@@ -652,6 +661,7 @@ app.post('/generate', verifyUser, async (req, res) => {
     let messages = [{ role: "system", content: systemInstructionText }];
 
     const MAX_HISTORY_MESSAGES = 3; 
+    // 🆕 صورة جديدة (أو تصفير الجلسة) = هيستوري فارغ تماماً
     let useHistory = (imageBase64 || forceHistoryReset) ? [] : (history || []);
     if (useHistory.length > MAX_HISTORY_MESSAGES) {
       useHistory = useHistory.slice(-MAX_HISTORY_MESSAGES);
@@ -718,8 +728,8 @@ app.post('/generate', verifyUser, async (req, res) => {
     }
 
     // ===================== ✅ التحديث في قاعدة البيانات (Firebase) =====================
-    // الصورة تُحسب كرسالة عادية ضمن عداد الجلسة (بلا تمييز) — الصورة تصفر الـ history/exerciseContext
-    // (تم فوق عبر clearHistory + OCR الجديد) لكن ما تلمسش عداد الجلسة نفسه
+    // الصورة تُحسب كرسالة عادية ضمن عداد الجلسة (بلا تمييز) — الصورة تصفر الـ history/exerciseContext/اللغة
+    // (تم فوق) لكن ما تلمسش عداد الجلسة نفسه (إلا عند حد الـ 8)
     const newSessionMessageCount = sessionMessageCount + 1;
 
     const updatePayload = {
@@ -727,9 +737,13 @@ app.post('/generate', verifyUser, async (req, res) => {
       usageLeft: admin.firestore.FieldValue.increment(-1), // خصم محاولة من الـ 7 اليومية
       messageCount: messageCount + 1,
       sessionMessageCount: newSessionMessageCount,        
-      dailyTokensUsed: imageBase64 ? requestTokens : admin.firestore.FieldValue.increment(requestTokens),
+      // 🆕 صححنا: دايماً increment (قبل كانت الصورة تكتب requestTokens فتمسح استهلاك اليوم السابق)
+      dailyTokensUsed: admin.firestore.FieldValue.increment(requestTokens),
       totalTokensUsedToday: admin.firestore.FieldValue.increment(requestTokens),
-      currentExamLanguage: examLanguage || userData.currentExamLanguage || null, 
+      // 🆕 مع صورة جديدة ما نرجعوش للغة القديمة المخزنة إذا الـ OCR فشل
+      currentExamLanguage: imageBase64
+        ? (examLanguage || null)
+        : (examLanguage || userData.currentExamLanguage || null), 
       exerciseContext: exerciseContext || null, 
       lastUsedDate: todayStr
     };
