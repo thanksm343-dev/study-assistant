@@ -847,59 +847,6 @@ app.post('/flouci-create', verifyUser, async (req, res) => {
   }
 });
 
-// ===================== CONFIRM PAYMENT =====================
-if (!req.isAdmin) return res.status(403).json({ error: "NOT ALLOWED" });
-app.post('/confirm-payment', verifyUser, async (req, res) => {
-  try {
-    const { orderId } = req.body || {};
-
-    if (!orderId) {
-      return res.status(400).json({ error: "Missing orderId" });
-    }
-
-    const paymentRef = db.collection("payments").doc(orderId);
-    const paymentSnap = await paymentRef.get();
-
-    if (!paymentSnap.exists) {
-      return res.status(404).json({ error: "Payment not found" });
-    }
-
-    const paymentData = paymentSnap.data() || {};
-    const userId = paymentData.userId;
-    const chosenPlan = paymentData.plan || "3_months";
-
-    let daysToAdd = 90; 
-    if (chosenPlan === "6_months") daysToAdd = 180;
-    else if (chosenPlan === "12_months") daysToAdd = 365;
-
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + daysToAdd);
-
-    await paymentRef.update({ status: "approved" });
-
-    const todayStr = typeof getTunisToday === 'function' ? getTunisToday() : new Date().toISOString().split('T')[0];
-
-    await db.collection("users").doc(userId).update({
-      plan: "pro",
-      isPro: true, 
-      subscriptionExpiresAt: expiryDate, 
-      paymentStatus: "approved",
-      dailyLimit: 8,  
-      usageLeft: 8,
-      daysLeft: daysToAdd, 
-      lastUsedDate: todayStr
-    });
-
-    return res.json({
-      success: true,
-      message: `Payment confirmed and limits set to 10 with ${daysToAdd} days`
-    });
-  } catch (error) {
-    console.error("❌ [Error in /confirm-payment]:", error);
-    return res.status(500).json({ error: error.message });
-  }
-});
-
 // ===================== ADMIN APPROVE =====================
 app.post('/approve-payment', verifyUser, async (req, res) => {
   if (!req.isAdmin) {
