@@ -191,7 +191,7 @@ app.use((req, res, next) => {
     `);
 });
 
-app.use(express.static(__dirname, {
+app.use(express.static(path.join(__dirname, 'public'), {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
