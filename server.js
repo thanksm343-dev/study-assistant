@@ -848,6 +848,7 @@ app.post('/flouci-create', verifyUser, async (req, res) => {
 });
 
 // ===================== CONFIRM PAYMENT =====================
+if (!req.isAdmin) return res.status(403).json({ error: "NOT ALLOWED" });
 app.post('/confirm-payment', verifyUser, async (req, res) => {
   try {
     const { orderId } = req.body || {};
