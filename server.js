@@ -347,6 +347,42 @@ async function verifyUser(req, res, next) {
     }
 }
 
+// ===================== 🔒 خصم محاولة يومية بعملية Transaction ذرية =====================
+// 🆕 يفحص رصيد اليوم (usageLeft) والمحاولة المجانية (freeTrialUsed) ويخصم محاولة وحدة
+// دفعة واحدة غير قابلة للتجزئة (atomic transaction). قبل هذا التعديل، كان الفحص يصير
+// بخطوة وبعدين الخصم يصير بخطوة ثانية منفصلة بعد ما يخلص نداء OpenAI كامل — فإذا وصلت
+// عدة طلبات بنفس اللحظة بالضبط، كلهم كانوا يشوفوا نفس الرصيد القديم ويعدوا الفحص قبل
+// ما أي وحد منهم يسجل خصمه، وهيك يقدروا يستهلكوا أكتر بكتير من usageLeft المسموح (وبالتالي
+// أكتر بكتير من نداءات OpenAI المدفوعة). هالدالة تسد هالفجوة: الفحص والخصم يصيروا سوا.
+// ترمي Error بخاصية code = "FREE_TRIAL_USED" أو "NO_USAGE_LEFT" إذا الرصيد ما يسمحش.
+async function consumeDailyAttempt(userRef, plan) {
+    return db.runTransaction(async (t) => {
+        const snap = await t.get(userRef);
+        const data = snap.data() || {};
+        const trialUsed = data.freeTrialUsed === true;
+        const left = Number(data.usageLeft || 0);
+
+        if (plan === "free" && trialUsed) {
+            const err = new Error("FREE_TRIAL_USED");
+            err.code = "FREE_TRIAL_USED";
+            throw err;
+        }
+        if (isNaN(left) || left <= 0) {
+            const err = new Error("NO_USAGE_LEFT");
+            err.code = "NO_USAGE_LEFT";
+            throw err;
+        }
+
+        const txUpdate = { usageLeft: admin.firestore.FieldValue.increment(-1) };
+        if (plan === "free") {
+            txUpdate.freeTrialUsed = true;
+        }
+        t.update(userRef, txUpdate);
+
+        return left - 1;
+    });
+}
+
 // ===================== HEALTH =====================
 app.get('/', (req, res) => {
     res.send("🚀 Server is running smoothly");
@@ -542,17 +578,6 @@ app.post('/generate', verifyUser, async (req, res) => {
     console.log(`📊 Daily Usage Left: ${currentUsageLeft}/${DAILY_LIMIT}`);
     console.log(`----------------------------------------`);
 
-    // 1️⃣ التحقق من المحاولة المجانية والحد اليومي (7 محاولات ناجحة، الثامنة توقف)
-    if (plan === "free" && freeTrialUsed) {
-      res.write(`data: ${JSON.stringify({ error: "🚫 لقد استهلكت محاولتك المجانية! قم بالترقية إلى Pro للمتابعة." })}\n\n`);
-      return res.end();
-    }
-
-    if (isNaN(currentUsageLeft) || currentUsageLeft <= 0) {
-      res.write(`data: ${JSON.stringify({ error: `⏳ لقد استوفيت رصيدك اليومي بالكامل. سيتم تجديده تلقائياً غداً.` })}\n\n`);
-      return res.end();
-    }
-
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
@@ -598,28 +623,44 @@ app.post('/generate', verifyUser, async (req, res) => {
     // ===================== 💬 رد جاهز على اقتراح (بلا أي نداء OpenAI — 0 توكن) =====================
     // ⚠️ لازم يجي بعد فحص الـ soft reset مباشرة، وقبل أي تجهيز لرسائل OpenAI
     if (suggestionId && SUGGESTION_REPLIES[suggestionId]) {
+      // 🔒 فحص + خصم محاولة يومية بعملية ذرية (atomic) — بالضبط هون، لحظة ما رح "تُحتسب"
+      // المحاولة فعلياً. هيك حتى لو وصلت عدة طلبات بنفس اللحظة، ما حدش يتعدى الحد المسموح.
+      let usageLeftAfterDecrement;
+      try {
+        usageLeftAfterDecrement = await consumeDailyAttempt(userRef, plan);
+      } catch (txErr) {
+        if (txErr && txErr.code === "FREE_TRIAL_USED") {
+          res.write(`data: ${JSON.stringify({ error: "🚫 لقد استهلكت محاولتك المجانية! قم بالترقية إلى Pro للمتابعة." })}\n\n`);
+          return res.end();
+        }
+        if (txErr && txErr.code === "NO_USAGE_LEFT") {
+          res.write(`data: ${JSON.stringify({ error: `⏳ لقد استوفيت رصيدك اليومي بالكامل. سيتم تجديده تلقائياً غداً.` })}\n\n`);
+          return res.end();
+        }
+        console.error("❌ [Transaction Error - Suggestion]:", txErr);
+        res.write(`data: ${JSON.stringify({ error: "حدث خطأ غير متوقع" })}\n\n`);
+        return res.end();
+      }
+
       const cannedText = SUGGESTION_REPLIES[suggestionId];
       res.write(`data: ${JSON.stringify({ text: cannedText })}\n\n`);
       if (typeof res.flush === 'function') res.flush();
 
-      // ✅ تُحتسب كمحاولة عادية بالضبط (خصم من الـ7 + زيادة عداد الجلسة) — بس بلا أي توكنز
+      // ✅ باقي الإحصائيات (usage/messageCount/sessionMessageCount) — الخصم الفعلي (usageLeft
+      // و freeTrialUsed) تم فعلاً بعملية الـ Transaction فوق، فما نكرروهش هون.
       const newSessionMessageCount = sessionMessageCount + 1;
       const suggestionUpdatePayload = {
         usage: admin.firestore.FieldValue.increment(1),
-        usageLeft: admin.firestore.FieldValue.increment(-1),
         messageCount: messageCount + 1,
         sessionMessageCount: newSessionMessageCount,
         lastUsedDate: todayStr
         // 🆕 ما فيش أي زيادة في dailyTokensUsed / totalTokensUsedToday — بلا نداء OpenAI فعلي (0 توكن)
       };
-      if (plan === "free") {
-        suggestionUpdatePayload.freeTrialUsed = true;
-      }
       await userRef.update(suggestionUpdatePayload);
 
       console.log(`----------------------------------------`);
       console.log(`💬 [Suggestion Reply] "${suggestionId}" — رد جاهز بلا أي نداء OpenAI (0 توكن)`);
-      console.log(`📊 [الاستهلاك اليومي] المحاولات اليومية المتبقية: ${currentUsageLeft - 1}/${DAILY_LIMIT} | عداد الجلسة: ${newSessionMessageCount}/${MAX_MESSAGES_PER_SESSION}`);
+      console.log(`📊 [الاستهلاك اليومي] المحاولات اليومية المتبقية: ${usageLeftAfterDecrement}/${DAILY_LIMIT} | عداد الجلسة: ${newSessionMessageCount}/${MAX_MESSAGES_PER_SESSION}`);
       console.log(`----------------------------------------`);
 
       res.write('\ndata: [DONE]\n\n');
@@ -734,6 +775,26 @@ app.post('/generate', verifyUser, async (req, res) => {
       content: currentContent.length === 1 && currentContent[0].type === "text" ? currentContent[0].text : currentContent
     });
 
+    // 🔒 فحص + خصم محاولة يومية بعملية ذرية (atomic) — بالضبط هون، قبل نداء OpenAI الفعلي
+    // (المكلف) مباشرة. هيك حتى لو وصلت عدة طلبات بنفس اللحظة بالضبط، Firestore بيسلسلهم
+    // واحد ورا واحد على usageLeft، وما حدش يقدر يتعدى الـ DAILY_LIMIT المسموح.
+    let usageLeftAfterDecrement;
+    try {
+      usageLeftAfterDecrement = await consumeDailyAttempt(userRef, plan);
+    } catch (txErr) {
+      if (txErr && txErr.code === "FREE_TRIAL_USED") {
+        res.write(`data: ${JSON.stringify({ error: "🚫 لقد استهلكت محاولتك المجانية! قم بالترقية إلى Pro للمتابعة." })}\n\n`);
+        return res.end();
+      }
+      if (txErr && txErr.code === "NO_USAGE_LEFT") {
+        res.write(`data: ${JSON.stringify({ error: `⏳ لقد استوفيت رصيدك اليومي بالكامل. سيتم تجديده تلقائياً غداً.` })}\n\n`);
+        return res.end();
+      }
+      console.error("❌ [Transaction Error - Generate]:", txErr);
+      res.write(`data: ${JSON.stringify({ error: "حدث خطأ غير متوقع" })}\n\n`);
+      return res.end();
+    }
+
     const requestMaxTokens = getMaxTokensForMode(mode);
     const stream = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -770,12 +831,12 @@ app.post('/generate', verifyUser, async (req, res) => {
 
     // ===================== ✅ التحديث في قاعدة البيانات (Firebase) =====================
     // الصورة تُحسب كرسالة عادية ضمن عداد الجلسة (بلا تمييز) — الصورة تصفر الـ history/exerciseContext/اللغة
-    // (تم فوق) لكن ما تلمسش عداد الجلسة نفسه (إلا عند حد الـ 7)
+    // (تم فوق) لكن ما تلمسش عداد الجلسة نفسه (إلا عند حد الـ 7). الخصم الفعلي (usageLeft و
+    // freeTrialUsed) تم فعلاً بعملية الـ Transaction قبل نداء OpenAI، فما نكرروهش هون.
     const newSessionMessageCount = sessionMessageCount + 1;
 
     const updatePayload = {
       usage: admin.firestore.FieldValue.increment(1),      
-      usageLeft: admin.firestore.FieldValue.increment(-1), // خصم محاولة من الـ 7 اليومية
       messageCount: messageCount + 1,
       sessionMessageCount: newSessionMessageCount,        
       // 🆕 صححنا: دايماً increment (قبل كانت الصورة تكتب requestTokens فتمسح استهلاك اليوم السابق)
@@ -789,17 +850,13 @@ app.post('/generate', verifyUser, async (req, res) => {
       lastUsedDate: todayStr
     };
 
-    if (plan === "free") {
-      updatePayload.freeTrialUsed = true;
-    }
-
     await userRef.update(updatePayload);
 
     // 🔍 طباعة التوكن المستهلك بدقة في التيرمينال لكل رسالة ولليوم بالكامل
     const previousTotalToday = Number(userData.totalTokensUsedToday || 0);
     const updatedTotalToday = previousTotalToday + requestTokens;
     console.log(`🔢 [Tokens Report] الرسالة الحالية: ${requestTokens} توكن | 📊 إجمالي التوكنز لليوزر اليوم: ${updatedTotalToday} توكن`);
-    console.log(`✅ تم الرد بنجاح | المحاولات اليومية المتبقية: ${currentUsageLeft - 1}/${DAILY_LIMIT} | عداد الجلسة الحالي: ${newSessionMessageCount}/${MAX_MESSAGES_PER_SESSION}`);
+    console.log(`✅ تم الرد بنجاح | المحاولات اليومية المتبقية: ${usageLeftAfterDecrement}/${DAILY_LIMIT} | عداد الجلسة الحالي: ${newSessionMessageCount}/${MAX_MESSAGES_PER_SESSION}`);
     
     res.write('\ndata: [DONE]\n\n');
     return res.end();
