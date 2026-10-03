@@ -145,6 +145,52 @@ const db = admin.firestore();
 // ===================== MIDDLEWARE =====================
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
+
+app.use((req, res, next) => {
+    console.log("REQUEST:", req.method, req.url);
+    next();
+});
+
+// ===================== 🛠️ MAINTENANCE MODE =====================
+// 🆕 هذا الـ middleware كان ناقص بالكامل — هو سبب ليش تفعيل MAINTENANCE_MODE
+// في Render ما كانش يأثر على أي شيء: ما كان في أي كود يقرأ المتغير أصلاً.
+app.use((req, res, next) => {
+    const isMaintenance = String(process.env.MAINTENANCE_MODE || "").toLowerCase() === "true";
+    if (!isMaintenance) return next();
+
+    // الأدمن يقدر يتخطى الصيانة عبر header خاص يحمل ADMIN_BYPASS_KEY
+    const bypassKey = req.headers["x-admin-bypass-key"];
+    if (bypassKey && process.env.ADMIN_BYPASS_KEY && bypassKey === process.env.ADMIN_BYPASS_KEY) {
+        return next();
+    }
+
+    // لوحة الأدمن ونظام تسجيل دخولها يضلوا شغالين حتى وقت الصيانة
+    const allowedPaths = ["/admin.html", "/403.html", "/check-admin", "/approve-payment"];
+    if (allowedPaths.includes(req.path)) {
+        return next();
+    }
+
+    // طلبات الـ API (fetch من الفرونت) تاخد رد JSON
+    if (req.path.startsWith("/api") || req.path === "/generate" || req.path === "/flouci-create" || req.path === "/confirm-payment") {
+        return res.status(503).json({
+            maintenance: true,
+            error: "🛠️ المنصة تحت الصيانة حالياً، رح ترجع قريباً. شكراً لصبركم."
+        });
+    }
+
+    // أي طلب صفحة عادي (index.html وغيرها) ياخد صفحة صيانة بسيطة
+    return res.status(503).send(`
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head><meta charset="UTF-8"><title>تحت الصيانة</title></head>
+        <body style="background:#0a0a0f;color:#e8e8f0;font-family:Arial;text-align:center;padding:80px 20px;">
+            <h1>🛠️ المنصة تحت الصيانة حالياً</h1>
+            <p>نشتغلوا باش نرجعوها أحسن. عاودوا جربوا بعد شوية.</p>
+        </body>
+        </html>
+    `);
+});
+
 app.use(express.static(__dirname, {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
@@ -154,11 +200,6 @@ app.use(express.static(__dirname, {
         }
     }
 }));
-
-app.use((req, res, next) => {
-    console.log("REQUEST:", req.method, req.url);
-    next();
-});
 
 // ===================== CRON JOB =====================
 cron.schedule('0 0 * * *', async () => {
