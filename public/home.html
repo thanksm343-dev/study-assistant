@@ -2971,15 +2971,17 @@ function previewImage(event) {
         const img = new Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            const maxSize = 1200;
+            const maxSize = 1600;
             let w = img.width, h = img.height;
             if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
             if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             ctx.filter = 'contrast(1.1) brightness(1.05)';
             ctx.drawImage(img, 0, 0, w, h);
-            const improved = canvas.toDataURL('image/jpeg', 0.95);
+            const improved = canvas.toDataURL('image/jpeg', 0.92);
             attachedImageBase64 = improved.split(',')[1];
             attachedImageMime = 'image/jpeg';
             document.getElementById("previewImg").src = improved;
@@ -2989,12 +2991,12 @@ function previewImage(event) {
     };
     reader.readAsDataURL(file);
 }
+
 function removeImage() {
     attachedImageBase64 = null; attachedImageMime = null;
     document.getElementById("imageInput").value = "";
     document.getElementById("previewContainer").style.display = "none";
 }
-
 function autoResize(el) {
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 150) + "px";
