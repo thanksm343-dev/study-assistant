@@ -870,7 +870,30 @@ app.post('/generate', verifyUser, async (req, res) => {
     return res.end();
   }
 });
-// ===================== CREATE PAYMENT =====================
+// ===================== 📲 إشعار تيليجرام عند طلب دفع جديد =====================
+async function notifyTelegramNewPayment({ email, plan, price, provider, orderId }) {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!token || !chatId) return; // ما في إعداد، ما نحاولش نبعت
+
+    const planNames = { "3_months": "3 أشهر", "6_months": "6 أشهر", "12_months": "سنة كاملة" };
+    const text =
+        `💰 طلب دفع جديد!\n\n` +
+        `👤 المستخدم: ${email || "غير معروف"}\n` +
+        `📦 الباقة: ${planNames[plan] || plan}\n` +
+        `💵 السعر: ${price} د.ت\n` +
+        `💳 الطريقة: ${provider}\n` +
+        `🆔 Order ID: ${orderId}`;
+
+    try {
+        await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+            chat_id: chatId,
+            text
+        });
+    } catch (err) {
+        console.warn("⚠️ [Telegram Notify] فشل إرسال الإشعار:", err.message);
+    }
+}
 app.post('/flouci-create', verifyUser, async (req, res) => {
   try {
     const method = (req.headers["x-pay-method"] || "").toLowerCase().trim();
@@ -892,6 +915,8 @@ app.post('/flouci-create', verifyUser, async (req, res) => {
       status: "pending",
       createdAt: new Date()
     });
+
+    notifyTelegramNewPayment({ email: req.user.email, plan: plan || "3_months", price: price || 30, provider, orderId });
 
     return res.json({
       url: "https://example.com/payment/" + orderId,
